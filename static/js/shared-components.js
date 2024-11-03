@@ -11,12 +11,12 @@ import {
 } from "./ui.js";
 
 const loggedIn = (await getCurrentSession()) !== undefined;
-export const $voteWidget = (votes, vote_positive, onVote) => {
+export const $voteWidget = (votes, vote_positive, onVote, disabled) => {
   const $parent = classes(make("div"), ["vote"]),
     $upButton = classes(
       update(make("button"), {
         innerText: "up",
-        disabled: !loggedIn,
+        disabled: !loggedIn || disabled,
       }),
       ["vote-up", ...(vote_positive ? ["on"] : [])],
     ),
@@ -26,7 +26,7 @@ export const $voteWidget = (votes, vote_positive, onVote) => {
     $downButton = classes(
       update(make("button"), {
         innerText: "down",
-        disabled: !loggedIn,
+        disabled: !loggedIn || disabled,
       }),
       ["vote-down", ...(vote_positive === false ? ["on"] : [])],
     ),
@@ -37,7 +37,6 @@ export const $voteWidget = (votes, vote_positive, onVote) => {
         currentVoteValue = currentVote === positive ? 0 : 2 * positive - 1,
         voteDifference =
           currentVoteValue - (currentVote === null ? 0 : 2 * currentVote - 1);
-      console.log(voteDifference);
       if (currentVoteValue === 0) {
         classes($thisButton, [], ["on"]);
         classes($otherButton, [], ["on"]);
@@ -46,7 +45,6 @@ export const $voteWidget = (votes, vote_positive, onVote) => {
         classes($otherButton, [], ["on"]);
       }
       vote_positive = currentVote === positive ? null : positive;
-      console.log(votes);
       votes += voteDifference;
       update($voteCounter, { innerText: votes });
       try {
@@ -68,11 +66,16 @@ const getHostnameForURL = (url) => {
     return undefined;
   }
 };
-export const $postElement = (post, $replyButton) =>
+export const $postElement = (post) =>
   children(classes(make("div"), ["post"]), [
     // Votes
     $voteWidget(post.post_votes, post.vote_positive, async (voteValue) => {
-      voteOnPost(await getCurrentSession(), post.post_id, voteValue);
+      voteOnPost(
+        await getCurrentSession(),
+        post.post_id,
+        voteValue,
+        post.post_deleted ? true : false,
+      );
     }),
     children(classes(make("div"), ["post-stack"]), [
       // Post title
@@ -97,8 +100,9 @@ export const $postElement = (post, $replyButton) =>
           innerText: `posted by `,
         }),
         update(make("a"), {
-          innerText: post.user_displayname,
-          href: `/users/${post.user_username}`,
+          innerText: post.user_displayname ?? "[nobody]",
+          href:
+            post.user_username === null ? "" : `/users/${post.user_username}`,
         }),
         update(make("span"), {
           innerText: " • ",
@@ -108,6 +112,7 @@ export const $postElement = (post, $replyButton) =>
           href: `/posts/${post.post_id}`,
           innerText: "comments",
         }),
+        // If it is your own post
         ...(post.post_mine === true
           ? [
               ...(post.post_text !== null

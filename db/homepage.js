@@ -39,7 +39,7 @@ export const dbGetHomepage = async (page, userID) => {
           user_username${userID !== undefined ? ",vote_positive, coalesce(my_posts.post_mine, FALSE) as post_mine" : ""}
         from
           posts
-          join users on posts.user_id = users.user_id
+          left join users on posts.user_id = users.user_id
           ${
             userID !== undefined
               ? `

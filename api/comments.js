@@ -8,7 +8,8 @@ import {
 
 export const routeGetPostComments = async (req, res) => {
     const postID = parseInt(req.params.postID),
-      passedPage = req.query.page;
+      passedPage = req.query.page,
+      userID = req.evilUserID;
     if (
       passedPage !== undefined &&
       (typeof passedPage !== "number" || passedPage < 0)
@@ -22,7 +23,7 @@ export const routeGetPostComments = async (req, res) => {
     try {
       res.json({
         status: true,
-        comments: await dbGetCommentsForPost(postID),
+        comments: await dbGetCommentsForPost(postID, passedPage, userID),
       });
     } catch (err) {
       res.status(500);
@@ -41,7 +42,7 @@ export const routeGetPostComments = async (req, res) => {
       userID = req.evilUserID;
     if (
       commentID === undefined ||
-      isNaN(postID) ||
+      isNaN(commentID) ||
       typeof commentID !== "number"
     ) {
       res.status(400);
@@ -68,7 +69,7 @@ export const routeGetPostComments = async (req, res) => {
       userID = req.evilUserID;
     if (
       commentID === undefined ||
-      isNaN(postID) ||
+      isNaN(commentID) ||
       typeof commentID !== "number" ||
       passedContent === undefined ||
       typeof passedContent !== "string" ||

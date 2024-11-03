@@ -33,7 +33,7 @@ export const dbGetCommentsForPost = async (postID, page, userID) => {
     offset = HOMEPAGE_ITEMS_PER_PAGE * Math.floor(page ?? 0);
     const userIDParam = userID === undefined ? [] : [userID];
     try {
-      const homepageQuery = await client.query(
+      const commentsQuery = await client.query(
         `
         with
           all_comments_for_post as (
@@ -49,9 +49,7 @@ export const dbGetCommentsForPost = async (postID, page, userID) => {
               comment_locked,
               comment_deleted,
               comment_deletion_reason,
-              comment_chain_depth --,
-              -- user_displayname,
-              -- user_username
+              comment_chain_depth
             from comments where post_id = $1
           ),
           first_level_comments_for_post as (
@@ -70,11 +68,13 @@ export const dbGetCommentsForPost = async (postID, page, userID) => {
               post_id,
               user_id,
               comment_replyto,
-              comment_root,
+              all_comments_for_post.comment_root,
               comment_votes,
               comment_content,
               comment_timestamp,
               comment_locked,
+              comment_deleted,
+              comment_deletion_reason,
               comment_chain_depth
             from
               all_comments_for_post
@@ -91,17 +91,27 @@ export const dbGetCommentsForPost = async (postID, page, userID) => {
           select
             all_returned_comments.comment_id as comment_id,
             post_id,
-            all_returned_comments.user_id as user_id,
+            user_username,
+            user_displayname,
             comment_replyto,
             comment_root,
             comment_votes,
             comment_content,
+            comment_deleted,
             comment_timestamp,
             comment_locked,
-            comment_chain_depth${userID !== undefined ? ", vote_positive" : ""}
+            comment_chain_depth
+            ${
+              userID !== undefined
+                ? `
+              , vote_positive,
+              case when all_returned_comments.user_id = $4 then TRUE else FALSE end as comment_mine
+              `
+                : ""
+            }
           from
             all_returned_comments
-            join users on all_returned_comments.user_id = users.user_id
+            left join users on all_returned_comments.user_id = users.user_id
             ${
               userID !== undefined
                 ? "left join comment_votes on all_returned_comments.comment_id = comment_votes.comment_id and comment_votes.user_id = $4"
@@ -110,7 +120,7 @@ export const dbGetCommentsForPost = async (postID, page, userID) => {
       `,
         [postID, HOMEPAGE_ITEMS_PER_PAGE, offset, ...userIDParam],
       );
-      return homepageQuery.rows;
+      return commentsQuery.rows;
     } catch (err) {
       throw POSTGRES_ERROR(err);
     }
