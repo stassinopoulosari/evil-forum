@@ -64,6 +64,7 @@ export const passSession = async (req, res, next) => {
     const session = await dbCheckSession(sessionID, userID, ipAddress);
     // Fail user out if their session does not exist, is invalid, or is invalidated
     if (session.passed === false) {
+      console.warn(session);
       res.status(403);
       return res.json({
         error: session.reason,
