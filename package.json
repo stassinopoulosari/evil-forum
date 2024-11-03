@@ -1,7 +1,8 @@
 {
-  "name": "node-js-getting-started",
-  "version": "0.3.0",
-  "description": "A sample Node.js app using Express 4",
+  "name": "evil-forum",
+  "version": "0.0.1",
+  "type": "module",
+  "description": "Like Hacker News, just evil",
   "engines": {
     "node": "20.x"
   },
@@ -11,15 +12,18 @@
     "test": "node test.js"
   },
   "dependencies": {
-    "ejs": "^3.1.9",
-    "express": "^4.15.2"
-  },
-  "devDependencies": {
-    "tape": "^5.7.4"
+    "axios": "^1.7.7",
+    "crypto": "^1.0.1",
+    "express": "^4.21.1",
+    "express-rate-limit": "^7.4.1",
+    "express-session": "^1.18.1",
+    "form-data": "^4.0.1",
+    "pg": "^8.13.0",
+    "toad-scheduler": "^3.0.1"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/heroku/node-js-getting-started"
+    "url": "https://github.com/stassinopoulosari/evil-forum"
   },
   "keywords": [
     "node",

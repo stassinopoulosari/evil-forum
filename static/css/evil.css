@@ -1,0 +1,106 @@
+/*
+    Colors:
+    #C14953 red
+    #383961 blue
+    #BCF8EC mint
+    #AED9E0 light blue
+    #9FA0C3 lavender
+*/
+@import url("https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap");
+
+html,
+body {
+    padding: 0;
+    margin: 0;
+    font-family: "Fira Sans";
+}
+
+nav {
+    padding: 1em;
+    display: flex;
+    align-items: center;
+    background-color: #bcf8ec;
+}
+
+nav > * {
+    margin-right: 1em;
+}
+
+nav a:first-child,
+nav a:first-child img {
+    height: 2.5em;
+}
+
+a[disabled] {
+    color: #000;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
+input,
+textarea {
+    padding: 0.5rem;
+    border: 0.1px solid #000;
+    border-radius: 0.5rem;
+}
+
+input[type="submit"] {
+    background-color: #aed9e0;
+    margin-top: 1em;
+    font-weight: bold;
+}
+
+span.spacer {
+    flex: 1;
+}
+
+.no-post-placeholder {
+    text-align: center;
+}
+
+.content {
+    padding: 1em;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: row;
+    gap: 1em;
+    margin-top: 0.5em;
+    align-items: center;
+}
+
+label {
+    font-weight: bold;
+}
+
+.post {
+    display: flex;
+    flex-direction: row;
+    margin: 0.5em;
+}
+.post .post-stack {
+    display: block;
+    /* flex-direction: column; */
+}
+.post > div > a > h2 {
+    display: inline;
+    margin-right: 0.5em;
+}
+.vote {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1em;
+}
+.vote-up,
+.vote-down {
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+.on {
+    background-color: #c14953;
+    color: #fff;
+}
