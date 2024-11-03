@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="/css/evil.css" />
+        <title>POST - evil forum</title>
+    </head>
+    <body>
+        <nav id="newPost-navBar"></nav>
+        <div class="content">
+            <h1>new post</h1>
+            <i>posting as <span id="newPost-username"></span></i>
+            <form action="." id="newPost-form">
+                <div class="form-group">
+                    <label for="newPost-postTitle">title</label>
+                    <input type="text" id="newPost-postTitle" required />
+                </div>
+                <div class="form-group">
+                    <div class="form-subgroup">
+                        <label for="newPost-postTypeText"
+                            >text post (evil)</label
+                        >
+                        <input
+                            name="newPost-postType"
+                            type="radio"
+                            value="text"
+                            id="newPost-postTypeText"
+                            checked
+                        />
+                    </div>
+                    <div class="form-subgroup">
+                        <label for="newPost-postTypeLink"
+                            >sinister link post</label
+                        >
+                        <input
+                            name="newPost-postType"
+                            type="radio"
+                            value="link"
+                            id="newPost-postTypeLink"
+                            required
+                        />
+                    </div>
+                </div>
+                <div
+                    class="form-group"
+                    id="newPost-postTextContentContainer"
+                    style="display: block"
+                >
+                    <textarea
+                        id="newPost-postTextContent"
+                        rows="3"
+                        placeholder="share your nefarious plans"
+                    ></textarea>
+                </div>
+                <div
+                    class="form-group"
+                    id="newPost-postLinkContentContainer"
+                    style="display: none"
+                >
+                    <input
+                        type="url"
+                        id="newPost-postLinkContent"
+                        placeholder="share your sinister links"
+                    />
+                </div>
+                <input type="submit" />
+            </form>
+        </div>
+    </body>
+    <script src="/js/new-post.js" type="module"></script>
+</html>
