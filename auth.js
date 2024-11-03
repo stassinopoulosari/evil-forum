@@ -59,7 +59,10 @@ export const passSession = async (req, res, next) => {
     // Get user-provided session ID and user ID as well as IP address
     const sessionID = req.get("x-evil-forum-session-id"),
       userID = req.get("x-evil-forum-user-id"),
-      ipAddress = req.get("x-forwarded-for") || req.socket.remoteAddress;
+      ipAddress =
+        req.get("x-forwarded-for").split(", ").pop() ||
+        req.socket.remoteAddress;
+    console.log(ipAddress);
     // Check session against user ID and IP
     const session = await dbCheckSession(sessionID, userID, ipAddress);
     // Fail user out if their session does not exist, is invalid, or is invalidated
@@ -139,7 +142,11 @@ authenticationRouter
         userID = newUserID;
       }
       // Get remote IP and create session
-      const ipAddress = req.get("x-forwarded-for") || req.socket.remoteAddress;
+      const ipAddress =
+        req.get("x-forwarded-for").split(", ").pop() ||
+        req.socket.remoteAddress;
+      console.log(ipAddress);
+
       const sessionInformation = await createLoginSession(userID, ipAddress);
       res.json({ session: sessionInformation, userID: userID });
     } catch (err) {
