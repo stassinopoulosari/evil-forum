@@ -1,4 +1,5 @@
 {
   "name": "Evil Forum",
+  "stack": "heroku-24",
   "description": "Like Hacker News, just evil."
 }
