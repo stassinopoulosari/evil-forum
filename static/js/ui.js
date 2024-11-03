@@ -59,7 +59,11 @@ export const addEllipsis = ($parent) => {
   },
   attr = ($el, values) => {
     for (const valueKey in values) {
-      $el.setAttribute(valueKey, values[valueKey]);
+      if (values[valueKey] === undefined) {
+        $el.removeAttribute(valueKey);
+      } else {
+        $el.setAttribute(valueKey, values[valueKey]);
+      }
     }
     return $el;
   },

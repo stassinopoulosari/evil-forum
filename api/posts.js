@@ -63,7 +63,7 @@ export const routeGetPost = async (req, res) => {
     }
     const postID = parseInt(req.params.postID),
       userID = req.evilUserID;
-    if (postID === undefined || isNan(postID) || typeof postID !== "number") {
+    if (postID === undefined || isNaN(postID) || typeof postID !== "number") {
       res.status(400);
       return res.json({
         success: false,

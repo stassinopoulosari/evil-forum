@@ -184,11 +184,11 @@ export const dbCreatePost = async (userID, post) => {
           post_locked,
           post_edited_at,
           user_displayname,
-          user_username,
-          ${userID === undefined ? "" : `vote_positive, case when posts.user_id = $2 then TRUE else FALSE end as post_mine`}
+          user_username
+          ${userID === undefined ? "" : `, vote_positive, case when posts.user_id = $2 then TRUE else FALSE end as post_mine`}
         from
           posts
-          join users on posts.user_id = users.user_id
+          left join users on posts.user_id = users.user_id
           ${
             userID !== undefined
               ? `
@@ -196,7 +196,7 @@ export const dbCreatePost = async (userID, post) => {
               `
               : ""
           }
-        where posts.post_id = $1 and (post_deleted is null or post_deleted = FALSE) limit 1;`,
+        where posts.post_id = $1 limit 1;`,
         [postID, ...(userID === undefined ? [] : [userID])],
       );
     } catch (err) {
