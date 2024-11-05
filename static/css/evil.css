@@ -30,7 +30,9 @@ nav a:first-child,
 nav a:first-child img {
     height: 2.5em;
 }
-
+a {
+    color: #383961;
+}
 a[disabled] {
     color: #000;
     pointer-events: none;

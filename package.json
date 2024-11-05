@@ -6,10 +6,9 @@
   "engines": {
     "node": "20.x"
   },
-  "main": "index.js",
+  "main": "entryPoints/web.js",
   "scripts": {
-    "start": "node index.js",
-    "test": "node test.js"
+    "start": "node entryPoints/web.js"
   },
   "dependencies": {
     "axios": "^1.7.7",
