@@ -25,7 +25,9 @@ import {
   routePostCommentVote,
   routePostPostVote,
 } from "./votes.js";
-import { routeGetUserMe } from "./users.js";
+import { routeGetUserMe, routeGetUser } from "./users.js";
+import { rateLimit } from "express-rate-limit";
+
 const router = Router();
 
 // API root
@@ -35,9 +37,15 @@ router.get("/", (req, res) =>
   }),
 );
 
-router.use(passSession);
-// Route post modification functions
+router.use(passSession).use(
+  rateLimit({
+    windowMs: 10 * 60 * 1000,
+    limit: 200,
+    standardHeaders: "draft-7",
+  }),
+);
 
+// Route post modification functions
 router.post("/posts/new", routePostNewPost).get("/posts/new", routeGetNewPost);
 
 router
@@ -87,6 +95,6 @@ router
   .get("/posts/:postID", routeGetPost)
   .get("/posts/:postID/comments", routeGetPostComments);
 
-router.get("/user/me", routeGetUserMe);
+router.get("/user/me", routeGetUserMe).get("/users/:username", routeGetUser);
 
 export default router;

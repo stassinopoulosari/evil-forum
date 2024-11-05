@@ -1,9 +1,9 @@
 import express from "express";
 import session from "express-session";
-import api from "./api/api.js";
-import * as auth from "./auth.js";
-import { PORT } from "./config.js";
-import { scheduleJobs } from "./recurringFunctions.js";
+import api from "../api/api.js";
+import * as auth from "../auth.js";
+import { PORT } from "../config.js";
+import { scheduleJobs } from "../recurringFunctions.js";
 
 express()
   // This is needed to parse request bodies
