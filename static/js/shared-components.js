@@ -1,5 +1,4 @@
 import { deletePost, getMe, voteOnPost } from "./api.js";
-import { getWithSession } from "./network.js";
 import { getCurrentSession } from "./session.js";
 import {
   addEllipsis,
@@ -69,14 +68,15 @@ const getHostnameForURL = (url) => {
 export const $postElement = (post) =>
   children(classes(make("div"), ["post"]), [
     // Votes
-    $voteWidget(post.post_votes, post.vote_positive, async (voteValue) => {
-      voteOnPost(
-        await getCurrentSession(),
-        post.post_id,
-        voteValue,
-        post.post_deleted ? true : false,
-      );
-    }),
+    $voteWidget(
+      post.post_votes,
+      post.vote_positive,
+      async (voteValue) => {
+        console.log(post);
+        voteOnPost(await getCurrentSession(), post.post_id, voteValue);
+      },
+      post.post_deleted,
+    ),
     children(classes(make("div"), ["post-stack"]), [
       // Post title
       children(

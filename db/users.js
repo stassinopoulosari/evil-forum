@@ -10,6 +10,7 @@ import {
 import {
   NO_CLIENT_ERROR,
   PERMISSION_ENTITY_DELETED_ERROR,
+  PERMISSION_USER_BANNED_ERROR,
   POSTGRES_ERROR,
 } from "./errors.js";
 
@@ -122,63 +123,86 @@ export const dbUserActive = async (userID) => {
     ]);
     validateArgument("requestorUserID", requestorUserID, [paramArgumentString]);
     validateArgument("page", page, [paramArgumentNumber]);
-    let offset;
-    if (page === undefined) offset = 0;
-    offset = HOMEPAGE_ITEMS_PER_PAGE * Math.floor(page ?? 0);
+    const offset = HOMEPAGE_ITEMS_PER_PAGE * Math.floor(page ?? 0),
+      userID = await dbGetUserByUsername(username);
+    if (!(await dbUserActive(userID)))
+      throw PERMISSION_USER_BANNED_ERROR(userID);
     try {
       return (
         await client.query(
-          `select
-        coalesce(comments.post_id, posts.post_id) as post_id,
-        post_title,
-        post_timestamp,
-        post_text,
-        post_link,
-        post_votes,
-        post_score,
-        post_locked,
-        post_edited_at,
-        user_displayname,
-        comment_id,
-        comment_replyto,
-        comment_root,
-        comment_votes,
-        comment_content,
-        comment_timestamp,
-        comment_locked,
-        coalesce(post_timestamp, comment_timestamp) as timestamp,
-        case
-          when posts.post_id is not null then 'post'
-          when comments.comment_id is not null then 'comment'
-        else
-          NULL
-        end as entity_type,
-        case
-          when posts.post_id is not null and posts.user_id = $2 then TRUE
-          when posts.post_id is null then NULL
-          else
-            false
-        end as post_mine,
-        case
-          when comments.comment_id is not null and comments.user_id = $2 then TRUE
-          when comments.comment_id is null then NULL
-          else
-            false
-        end as comment_mine
-      from
-        posts
-        full outer join
-          comments on FALSE
-        left join
-          users on
-            users.user_id = coalesce(posts.user_id, comments.user_id)
-        where
-          user_username = $1
-        order by
-          timestamp desc
-        limit $3
-        offset $4;`,
-          [username, requestorUserID, HOMEPAGE_ITEMS_PER_PAGE, offset],
+          `
+          with comments_with_context as (
+            select
+              posts.post_title as comment_post_title,
+              comment_id,
+              comments.user_id as user_id,
+              comment_replyto,
+              comment_root,
+              comment_votes,
+              comment_content,
+              comment_timestamp,
+              comment_locked,
+              posts.post_id as post_id
+            from
+              comments
+              join posts
+                on comments.post_id = posts.post_id
+              join users
+                on comments.user_id = users.user_id
+              where users.user_id = $1
+          )
+          select
+            coalesce(comments_with_context.post_id, posts.post_id) as post_id,
+            post_title,
+            post_timestamp,
+            post_text,
+            post_link,
+            post_votes,
+            post_score,
+            post_locked,
+            post_edited_at,
+            user_displayname,
+            comment_id,
+            comment_post_title,
+            comment_replyto,
+            comment_root,
+            comment_votes,
+            comment_content,
+            comment_timestamp,
+            comment_locked,
+            coalesce(post_timestamp, comment_timestamp) as timestamp,
+            case
+              when posts.post_id is not null then 'post'
+              when comments_with_context.comment_id is not null then 'comment'
+            else
+              NULL
+            end as entity_type,
+            case
+              when posts.post_id is not null and posts.user_id = $2 then TRUE
+              when posts.post_id is null then NULL
+              else
+                false
+            end as post_mine,
+            case
+              when comments_with_context.comment_id is not null and comments_with_context.user_id = $2 then TRUE
+              when comments_with_context.comment_id is null then NULL
+              else
+                false
+            end as comment_mine
+          from
+            posts
+            full outer join
+              comments_with_context on FALSE
+            left join
+              users on
+                users.user_id = coalesce(posts.user_id, comments_with_context.user_id)
+            where
+              user_id = $1
+            order by
+              timestamp desc
+            limit $3
+            offset $4;`,
+          [userID, requestorUserID, HOMEPAGE_ITEMS_PER_PAGE, offset],
         )
       ).rows;
     } catch (err) {

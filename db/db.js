@@ -1,6 +1,8 @@
 import Pool from "pg";
-import { SECRETS } from "../config.js";
+import { PROTOCOL, SECRETS } from "../config.js";
 import { MALFORMED_PARAMETER_ERROR } from "./errors.js";
+import session from "express-session";
+import store from "connect-pg-simple";
 const pool = new Pool.Pool({
   connectionString: SECRETS.DATABASE_URL,
   ssl: {
@@ -10,7 +12,21 @@ const pool = new Pool.Pool({
 
 export let client = undefined;
 
-export const setupDB = async () => {
+const PGSession = store(session);
+
+const sessionStore = new PGSession({
+  pool: pool,
+  tableName: "express_sessions",
+});
+
+export const dbSession = session({
+    store: sessionStore,
+    secret: SECRETS.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: PROTOCOL === "https" },
+  }),
+  setupDB = async () => {
     if (client === undefined) {
       throw NO_CLIENT_ERROR;
     }
@@ -71,7 +87,18 @@ export const setupDB = async () => {
       session_expires timestamptz not null,
       session_opened timestamptz not null,
       session_ip text not null
-    );`);
+    );
+    -- From connect-pg-simple middleware
+    create table "express_sessions" (
+      "sid" varchar not null collate "default",
+      "sess" json not null,
+      "expire" timestamp(6) not null
+    )
+    with (oids = FALSE);
+    alter table "express_sessions" add constraint "express_sessions_pkey" primary key ("sid") not deferrable initially immediate;
+    create index "IDX_express_sessions_expire" on "express_sessions" ("expire");
+    create table "user_notifications"
+    `);
     } catch (err) {
       throw POSTGRES_ERROR(err);
     }
@@ -111,7 +138,7 @@ export const setupDB = async () => {
     if (
       argument !== null &&
       argument !== undefined &&
-      (typeof argument !== "string" || argument.trim().length <= 2)
+      (typeof argument !== "string" || argument.trim().length <= 0)
     )
       throw MALFORMED_PARAMETER_ERROR(argumentName, argument);
   },

@@ -33,6 +33,7 @@ export const dbGetHomepage = async (page, userID) => {
           post_link,
           post_votes,
           post_score,
+          post_deleted,
           post_locked,
           post_edited_at,
           user_displayname,

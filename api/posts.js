@@ -6,6 +6,7 @@ import {
   dbEditPost,
   dbGetPostWithUserInformation,
 } from "../db/posts.js";
+import { MAX_POST_LENGTH, MAX_POST_TITLE_LENGTH } from "../config.js";
 
 export const routeGetPost = async (req, res) => {
     const postID = parseInt(req.params.postID);
@@ -29,7 +30,7 @@ export const routeGetPost = async (req, res) => {
       return authenticationFailError(res, "edit post");
     }
     const postID = parseInt(req.params.postID),
-      passedText = req.body.text,
+      passedText = req.body.text.trim(),
       userID = req.evilUserID;
     if (
       postID === undefined ||
@@ -37,7 +38,8 @@ export const routeGetPost = async (req, res) => {
       typeof postID !== "number" ||
       passedText === undefined ||
       typeof passedText !== "string" ||
-      passedText.trim().length < 2
+      passedText.trim().length < 1 ||
+      passedText.trim().length > MAX_POST_LENGTH
     ) {
       res.status(400);
       return res.json({
@@ -86,13 +88,18 @@ export const routeGetPost = async (req, res) => {
     if (req.evilSession === undefined || req.evilUserID === undefined) {
       return authenticationFailError(res, "create post");
     }
-    const passedPost = req.body.post,
+    const passedPost = req.body.post.trim(),
       userID = req.evilUserID;
     if (
       Object.keys(req.body).length === 0 ||
       passedPost === undefined ||
       typeof passedPost !== "object" ||
       typeof passedPost.title !== "string" ||
+      passedPost.title.length < 1 ||
+      passedPost.title.length > MAX_POST_TITLE_LENGTH ||
+      (passedPost.text !== undefined &&
+        passedPost.text.trim().length < 1 &&
+        passedPost.text.trim().length > MAX_POST_LENGTH) ||
       (passedPost.link === undefined && passedPost.text === undefined) ||
       (passedPost.link !== undefined && passedPost.text !== undefined)
     ) {
@@ -120,7 +127,7 @@ export const routeGetPost = async (req, res) => {
         });
       }
     } else {
-      post.text = passedPost.text;
+      post.text = passedPost.text.trim();
     }
     try {
       console.log(

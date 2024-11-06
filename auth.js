@@ -104,16 +104,19 @@ authenticationRouter
           /\n|\r| {2,}/g,
           "",
         );
-      req.session.state = state;
+      req.session.oauthState = state;
+      console.log(state);
+
       res.redirect(redirectURI);
     } else {
       res.sendFile("views/auth-google.html", { root: "." });
     }
   })
   .get("/createSession", async (req, res) => {
-    const state = req.session.state,
+    const state = req.session.oauthState,
       query = req.query;
-    if (state === undefined || query.state !== state) {
+    console.log(req.session);
+    if (state === undefined || query.oauthState !== state) {
       res.status(401);
       res.json({
         error: "State in session does not match state in OAuth",
