@@ -136,7 +136,8 @@ export const dbGetNotificationSettings = async (userID) => {
     if (client === undefined) throw NO_CLIENT_ERROR;
     try {
       return (
-        await client.query(`
+        await client.query(
+          `
           delete from queued_notifications
           where
             notification_id in (
@@ -145,7 +146,9 @@ export const dbGetNotificationSettings = async (userID) => {
               limit $1
             )
           returning *
-        `)
+        `,
+          [amount],
+        )
       ).rows;
     } catch (err) {
       throw POSTGRES_ERROR(err);
