@@ -1,4 +1,9 @@
-import { HOMEPAGE_ITEMS_PER_PAGE, MAX_COMMENT_DEPTH } from "../config.js";
+import {
+  DOMAIN,
+  HOMEPAGE_ITEMS_PER_PAGE,
+  MAX_COMMENT_DEPTH,
+  PROTOCOL,
+} from "../config.js";
 import {
   client,
   paramArgumentNonNull,
@@ -6,6 +11,7 @@ import {
   paramArgumentObject,
   paramArgumentString,
   paramArgumentStringNotBlank,
+  san,
   validateArgument,
 } from "./db.js";
 import {
@@ -17,8 +23,13 @@ import {
   POSTGRES_ERROR,
   USER_ID_MISMATCH_ERROR,
 } from "./errors.js";
-import { dbPostCommentable } from "./posts.js";
-import { dbUserActive } from "./users.js";
+import { dbQueueNotification } from "./notifications.js";
+import {
+  dbGetPost,
+  dbPostCommentable,
+  dbQueuePostReplyNotification,
+} from "./posts.js";
+import { dbGetUser, dbUserActive } from "./users.js";
 import { dbRegisterCommentVote } from "./votes.js";
 
 export const dbGetCommentsForPost = async (postID, page, userID) => {
@@ -302,8 +313,34 @@ export const dbGetCommentsForPost = async (postID, page, userID) => {
         console.error(err),
       );
       returnedComment.comment_votes = 1;
+      if (replyTo !== null) {
+        dbQueueCommentReplyNotification(postID, replyTo, comment, userID);
+      } else {
+        dbQueuePostReplyNotification(postID, comment, userID);
+      }
       return returnedComment;
     } catch (err) {
       throw POSTGRES_ERROR(err);
     }
+  },
+  dbQueueCommentReplyNotification = async (
+    postID,
+    parentCommentID,
+    comment,
+    userID,
+  ) => {
+    const parentComment = await dbGetComment(parentCommentID),
+      post = await dbGetPost(postID),
+      parentCommentUserID = parentComment.user_id,
+      childCommentUserID = comment.user_id,
+      childCommentUser = await dbGetUser(userID),
+      childCommentUsername = childCommentUser.user_username,
+      childCommentDisplayName = childCommentUser.user_diplayname;
+    dbQueueNotification(parentCommentUserID, "comment_reply", {
+      header: `A reply has been made to your comment on ${san(post.post_title)}`,
+      body: `User ${san(childCommentDisplayName)} <${san(childCommentUsername)}> has replied:
+${san(comment.content).split(/\r|\n/g).join("\t\n>")}
+
+See more at ${PROTOCOL}://${DOMAIN}/posts/${postID}`,
+    });
   };

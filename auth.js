@@ -115,8 +115,8 @@ authenticationRouter
   .get("/createSession", async (req, res) => {
     const state = req.session.oauthState,
       query = req.query;
-    console.log(req.session);
-    if (state === undefined || query.oauthState !== state) {
+    console.log(state, query);
+    if (state === undefined || query.state !== state) {
       res.status(401);
       res.json({
         error: "State in session does not match state in OAuth",
@@ -134,7 +134,12 @@ authenticationRouter
       let userID = ((await dbGetUserByGoogleID(googleID)) ?? {}).user_id;
       if (userID === undefined) {
         // Create user if none exits
-        const newUserID = await dbCreateUser(username, displayName, googleID);
+        const newUserID = await dbCreateUser(
+          username,
+          displayName,
+          googleID,
+          googleUserInfo.email,
+        );
         console.log(newUserID);
         if (newUserID === undefined) {
           res.status(500);
