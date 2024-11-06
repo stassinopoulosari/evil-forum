@@ -3,6 +3,7 @@ import { PROTOCOL, SECRETS } from "../config.js";
 import { MALFORMED_PARAMETER_ERROR } from "./errors.js";
 import session from "express-session";
 import store from "connect-pg-simple";
+import sanitizeHtml from "sanitize-html";
 const pool = new Pool.Pool({
   connectionString: SECRETS.DATABASE_URL,
   ssl: {
@@ -35,6 +36,7 @@ export const dbSession = session({
     create extension pgcrypto;
     create table "users"(
       user_id uuid primary key,
+      user_email text,
       user_google_id text not null,
       user_username text unique not null,
       user_displayname text not null,
@@ -87,6 +89,18 @@ export const dbSession = session({
       session_expires timestamptz not null,
       session_opened timestamptz not null,
       session_ip text not null
+    );
+    create table "queued_notifications"(
+      notification_id serial primary key,
+      user_id uuid references users(user_id) not null,
+      notification_type text not null,
+      notification_information json not null,
+      notification_queued timestamptz not null
+    );
+    create table "user_notification_settings"(
+      user_id uuid references users(user_id) unique not null,
+      notification_post_reply boolean,
+      notification_comment_reply boolean
     );
     -- From connect-pg-simple middleware
     create table "express_sessions" (
@@ -142,10 +156,20 @@ export const dbSession = session({
     )
       throw MALFORMED_PARAMETER_ERROR(argumentName, argument);
   },
+  paramArgumentBoolean = (argumentName, argument) => {
+    if (argument !== undefined && ![true, false].includes(argument))
+      throw MALFORMED_PARAMETER_ERROR(argumentName, argument);
+  },
   paramArgumentValidVote = (argumentName, argument) => {
     if (![-1, 0, 1].includes(argument))
       throw MALFORMED_PARAMETER_ERROR(argumentName, argument);
-  };
+  },
+  paramArgumentValidNotificationType = (argumentName, argument) => {
+    if (!["post_reply", "comment_reply"].includes(argument))
+      throw MALFORMED_PARAMETER_ERROR(argumentName, argument);
+  },
+  san = (text) =>
+    sanitizeHtml(text, { allowedTags: [], allowedAttributes: [] });
 
 try {
   client = await pool.connect();

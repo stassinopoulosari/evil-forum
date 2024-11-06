@@ -13,6 +13,7 @@ import {
   PERMISSION_USER_BANNED_ERROR,
   POSTGRES_ERROR,
 } from "./errors.js";
+import { dbUpdateNotificationSettings } from "./notifications.js";
 
 export const dbUserActive = async (userID) => {
     if (client === undefined) throw NO_CLIENT_ERROR;
@@ -31,7 +32,7 @@ export const dbUserActive = async (userID) => {
       throw POSTGRES_ERROR(err);
     }
   },
-  dbCreateUser = async (username, displayName, googleID) => {
+  dbCreateUser = async (username, displayName, email, googleID) => {
     if (client === undefined) throw NO_CLIENT_ERROR;
     validateArgument("username", username, [
       paramArgumentNonNull,
@@ -45,6 +46,10 @@ export const dbUserActive = async (userID) => {
       paramArgumentNonNull,
       paramArgumentString,
     ]);
+    validateArgument("email", email, [
+      paramArgumentNonNull,
+      paramArgumentString,
+    ]);
     try {
       const duplicateUsernameRows = await client.query(
         "select * from users where user_username = $1 or user_google_id = $2",
@@ -54,9 +59,13 @@ export const dbUserActive = async (userID) => {
         throw "User already exists";
       }
       const newUser = await client.query(
-        "insert into users (user_id, user_username, user_displayname, user_google_id) values(gen_random_uuid(), $1, $2, $3) returning *;",
-        [username, displayName, googleID],
+        "insert into users (user_id, user_username, user_displayname, user_google_id, user_email) values(gen_random_uuid(), $1, $2, $3) returning *;",
+        [username, displayName, googleID, email],
       );
+      dbUpdateNotificationSettings(userID, {
+        notification_comment_reply: true,
+        notification_post_reply: true,
+      });
       return newUser.rows[0].user_id;
     } catch (err) {
       throw POSTGRES_ERROR(err);

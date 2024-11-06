@@ -5,6 +5,7 @@ import {
   paramArgumentObject,
   paramArgumentString,
   paramArgumentStringNotBlank,
+  san,
   validateArgument,
 } from "./db.js";
 import {
@@ -17,9 +18,11 @@ import {
   POSTGRES_ERROR,
   USER_ID_MISMATCH_ERROR,
 } from "./errors.js";
+import { dbQueueNotification } from "./notifications.js";
 import { dbCalculateScoreForPost } from "./scores.js";
-import { dbUserActive } from "./users.js";
+import { dbGetUser, dbUserActive } from "./users.js";
 import { dbRegisterPostVote } from "./votes.js";
+import sanitizeHtml from "sanitize-html";
 
 export const dbCreatePost = async (userID, post) => {
     if (client === undefined) throw NO_CLIENT_ERROR;
@@ -240,4 +243,19 @@ export const dbCreatePost = async (userID, post) => {
     } catch (err) {
       throw POSTGRES_ERROR(err);
     }
+  },
+  dbQueuePostReplyNotification = async (postID, comment, userID) => {
+    const post = await dbGetPost(postID),
+      postUserID = post.user_id,
+      childCommentUserID = userID,
+      childCommentUser = await dbGetUser(childCommentUserID),
+      childCommentUsername = childCommentUser.user_username,
+      childCommentDisplayName = childCommentUser.user_diplayname;
+    dbQueueNotification(postUserID, "comment_reply", {
+      header: `A reply has been made to your post ${san(post.post_title)}`,
+      body: `User ${san(childCommentDisplayName)} <${san(childCommentUsername)}> has replied:
+\t>${san(comment.content).split(/\r|\n/g).join("\t\n>")}
+
+See more at ${PROTOCOL}://${DOMAIN}/posts/${postID}`,
+    });
   };
