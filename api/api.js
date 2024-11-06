@@ -95,6 +95,6 @@ router
   .get("/posts/:postID", routeGetPost)
   .get("/posts/:postID/comments", routeGetPostComments);
 
-router.get("/user/me", routeGetUserMe).get("/users/:username", routeGetUser);
+router.get("/users/me", routeGetUserMe).get("/users/:username", routeGetUser);
 
 export default router;

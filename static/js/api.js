@@ -52,7 +52,7 @@ export const createPost = async (session, post) => {
     )
       return savedMe.content;
     try {
-      let meResponse = await getWithSession(session, `/api/user/me`),
+      let meResponse = await getWithSession(session, `/api/users/me`),
         meContent = meResponse.json;
       localStorage.setItem(
         localMeKey,

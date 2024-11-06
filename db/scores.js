@@ -25,7 +25,7 @@ export const dbCalculateScoreForPost = async (postID) => {
           post_id = $1
           and (
             (post_timestamp <= now() - interval '${SCORE.MAX_HOURS_ON_HOMEPAGE} hours')
-            or post_deleted  = TRUE
+            or post_deleted = TRUE
           )
         limit 1
       ),
@@ -63,14 +63,18 @@ export const dbCalculateScoreForPost = async (postID) => {
     try {
       const postScoresQuery = await client.query(
         `
-      with zero_score_posts as (select post_id from posts where (post_timestamp <= now() - interval '${SCORE.MAX_HOURS_ON_HOMEPAGE} hours') or post_deleted  = TRUE),
+      with zero_score_posts as (
+        select post_id from posts where
+        (post_timestamp <= now() - interval '${SCORE.MAX_HOURS_ON_HOMEPAGE} hours')
+        or post_deleted = TRUE
+      ),
       score_posts as (
         select
           post_id,
           post_votes,
           extract(epoch from (now() - post_timestamp))::float as post_seconds_ago
         from posts
-        where post_timestamp > now() - interval '${SCORE.MAX_HOURS_ON_HOMEPAGE} hours'
+        where (post_deleted is null or post_deleted = FALSE) and post_timestamp > now() - interval '${SCORE.MAX_HOURS_ON_HOMEPAGE} hours'
       ),
       post_scores as (
         select
@@ -80,10 +84,10 @@ export const dbCalculateScoreForPost = async (postID) => {
           )::numeric(10,6) + post_votes) as new_post_score
         from score_posts
       ),
-      update_zero_scores as (
-        update posts set post_score = 0 from zero_score_posts where posts.post_id = zero_score_posts.post_id
+      update_post_scores as (
+        update posts set post_score = post_scores.new_post_score from post_scores where posts.post_id = post_scores.post_id
       )
-      update posts set post_score = post_scores.new_post_score from post_scores where posts.post_id = post_scores.post_id;
+      update posts set post_score = 0 from zero_score_posts where posts.post_id = zero_score_posts.post_id
       `,
       );
       return postScoresQuery;

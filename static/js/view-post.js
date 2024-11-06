@@ -16,7 +16,12 @@ const $page = make$Page("viewPost");
 $navBar($page.navBar);
 
 const currentSession = await getCurrentSession(),
-  postID = parseInt(location.pathname.split("/").slice(-1)[0]),
+  postID = parseInt(
+    location.pathname
+      .split("/")
+      .filter((path) => path !== "")
+      .slice(-1)[0],
+  ),
   renderPostNotFound = () =>
     children($page.postSummary, [
       update(make("h1"), { innerText: "This post was not found." }),
@@ -27,11 +32,13 @@ if (isNaN(postID) || postID < 0) {
   throw "Post ID is invalid";
 }
 
-const $commentWidget = (comment, getChildrenOf) => {
+const $commentWidget = (comment, getChildrenOf, disableReply) => {
     const $replyButton = update(
         attr(make("a"), {
           disabled:
-            currentSession === undefined || comment.comment_deleted
+            currentSession === undefined ||
+            comment.comment_deleted ||
+            disableReply
               ? true
               : undefined,
         }),
@@ -107,7 +114,7 @@ const $commentWidget = (comment, getChildrenOf) => {
         children(classes(make("div"), ["content"]), [
           ...(getChildrenOf !== undefined
             ? getChildrenOf(comment.comment_id).map((childComment) =>
-                $commentWidget(childComment, getChildrenOf),
+                $commentWidget(childComment, getChildrenOf, disableReply),
               )
             : []),
         ]),
@@ -174,16 +181,10 @@ const $commentWidget = (comment, getChildrenOf) => {
             }),
           ]
         : []),
-      $newCommentWidget(postID),
+      ...((post.post_deleted ? true : false || post.post_locked ? true : false)
+        ? []
+        : [$newCommentWidget(postID)]),
     ]);
-  } catch (error) {
-    renderPostNotFound();
-    throw error;
-  }
-})();
-
-(async () => {
-  try {
     const comments = (
         await getWithSession(currentSession, `/api/posts/${postID}/comments`)
       ).json.comments,
@@ -193,10 +194,22 @@ const $commentWidget = (comment, getChildrenOf) => {
     children(
       $page.comments,
       firstLevelComments.map((comment) =>
-        $commentWidget(comment, getChildrenOf),
+        $commentWidget(
+          comment,
+          getChildrenOf,
+          post.post_deleted ? true : false || post.post_locked ? true : false,
+        ),
       ),
     );
     console.log(comments);
+  } catch (error) {
+    renderPostNotFound();
+    throw error;
+  }
+})();
+
+(async () => {
+  try {
   } catch (error) {
     throw error;
   }

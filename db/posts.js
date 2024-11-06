@@ -184,6 +184,7 @@ export const dbCreatePost = async (userID, post) => {
           post_locked,
           post_edited_at,
           user_displayname,
+          post_deleted,
           user_username
           ${userID === undefined ? "" : `, vote_positive, case when posts.user_id = $2 then TRUE else FALSE end as post_mine`}
         from

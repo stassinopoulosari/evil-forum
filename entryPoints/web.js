@@ -2,8 +2,10 @@ import express from "express";
 import session from "express-session";
 import api from "../api/api.js";
 import * as auth from "../auth.js";
-import { PORT } from "../config.js";
-import { scheduleJobs } from "../recurringFunctions.js";
+import { PORT, SECRETS } from "../config.js";
+import { dbSession } from "../db/db.js";
+// Split scheduled jobs to recur dyno
+// import { scheduleJobs } from "../recurringFunctions.js";
 
 express()
   // This is needed to parse request bodies
@@ -23,13 +25,7 @@ express()
     res.sendFile("views/user.html", { root: "." }),
   )
   // Session is for OAuth only
-  .use(
-    session({
-      secret: "hello",
-      resave: false,
-      saveUninitialized: false,
-    }),
-  )
+  .use(dbSession)
   // Incorporate API and authentication routers
   .use("/api", api)
   .use("/auth", auth.authenticationRouter)
@@ -40,4 +36,4 @@ process.on("unhandledRejection", (reason, p) => {
   // application specific logging, throwing an error, or other logic here
 });
 
-scheduleJobs();
+// scheduleJobs();
