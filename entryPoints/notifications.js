@@ -1,4 +1,4 @@
-#!/app/.heroku/node/bin/node
+#!/usr/bin/env node
 
 import Mailgun from "mailgun.js";
 import formData from "form-data";
