@@ -5,18 +5,26 @@ import {
   dbCalculateVotesForCommentsOnInterval,
 } from "./db/votes.js";
 import { dbCalculatePostScores } from "./db/scores.js";
+import { sendEmailNotifications } from "./notifications.js";
 
 const scheduler = new ToadScheduler();
-const everyMinute = new Task("everyMinute", async () => {
+const everyThirtySeconds = new Task("everyMinute", async () => {
     try {
-      console.log("MARK - 1 minute. Deleting past sessions.");
+      console.log(
+        "MARK - 30 seconds. Deleting past sessions and sending e-mail.",
+      );
       // Delete old sessions
       console.log((await dbDeletePastSessions()).rowCount);
+      // Send e-mail
+      sendEmailNotifications();
     } catch (err) {
       console.error(err);
     }
   }),
-  everyMinuteJob = new SimpleIntervalJob({ minutes: 1 }, everyMinute);
+  everyThirtySecondsJob = new SimpleIntervalJob(
+    { seconds: 30 },
+    everyThirtySeconds,
+  );
 
 const everyTenMinutes = new Task("everyTenMinutes", async () => {
     try {
@@ -62,7 +70,10 @@ const everyDay = new Task("everyDay", async () => {
 
 export const scheduleJobs = () => {
   console.log("Scheduling jobs");
-  [everyMinuteJob, everyTenMinutesJob, everyHourJob, everyDayJob].forEach(
-    (job) => scheduler.addSimpleIntervalJob(job),
-  );
+  [
+    everyThirtySecondsJob,
+    everyTenMinutesJob,
+    everyHourJob,
+    everyDayJob,
+  ].forEach((job) => scheduler.addSimpleIntervalJob(job));
 };

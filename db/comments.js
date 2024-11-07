@@ -67,7 +67,7 @@ export const dbGetCommentsForPost = async (postID, page, userID) => {
             select
               *
             from all_comments_for_post where comment_chain_depth = 0
-            order by comment_votes desc
+            order by comment_votes desc, comment_timestamp desc
               limit $2 offset $3
           ),
           first_level_comment_ids as (
@@ -93,6 +93,7 @@ export const dbGetCommentsForPost = async (postID, page, userID) => {
                 on first_level_comment_ids.root_id = all_comments_for_post.comment_root
             where
               comment_chain_depth != 0
+            order by comment_votes desc, comment_timestamp desc
           ),
           all_returned_comments as (
             select * from first_level_comments_for_post
@@ -332,15 +333,25 @@ export const dbGetCommentsForPost = async (postID, page, userID) => {
     const parentComment = await dbGetComment(parentCommentID),
       post = await dbGetPost(postID),
       parentCommentUserID = parentComment.user_id,
-      childCommentUserID = comment.user_id,
-      childCommentUser = await dbGetUser(userID),
+      childCommentUserID = userID,
+      childCommentUser = await dbGetUser(childCommentUserID),
       childCommentUsername = childCommentUser.user_username,
-      childCommentDisplayName = childCommentUser.user_diplayname;
+      childCommentDisplayName = childCommentUser.user_displayname;
+    if (postUserID === childCommentUserID) return;
     dbQueueNotification(parentCommentUserID, "comment_reply", {
-      header: `A reply has been made to your comment on ${san(post.post_title)}`,
+      header: `A reply has been made to your comment on "${post.post_title}"`,
       body: `User ${san(childCommentDisplayName)} <${san(childCommentUsername)}> has replied:
-${san(comment.content).split(/\r|\n/g).join("\t\n>")}
+
+> ${san(comment.content).split(/\r|\n/g).join("\t\n> ")}
 
 See more at ${PROTOCOL}://${DOMAIN}/posts/${postID}`,
+      bodyHTML: `
+  <h1>A reply has been made to your comment on "${san(post.post_title)}"</h1>
+  <p>User ${san(childCommentDisplayName)} <${san(childCommentUsername)}> has replied:</p>
+  <p style='font-family: monospace; margin-left: 1em;'>
+  &gt;${san(comment.content).split(/\r|\n/g).join("<br/>&gt; ")}
+  </p>
+  <p><i>See more at <a href="${PROTOCOL}://${DOMAIN}/posts/${postID}">/posts/${postID}</a></i></p>
+`,
     });
   };

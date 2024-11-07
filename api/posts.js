@@ -88,7 +88,7 @@ export const routeGetPost = async (req, res) => {
     if (req.evilSession === undefined || req.evilUserID === undefined) {
       return authenticationFailError(res, "create post");
     }
-    const passedPost = req.body.post.trim(),
+    const passedPost = req.body.post,
       userID = req.evilUserID;
     if (
       Object.keys(req.body).length === 0 ||

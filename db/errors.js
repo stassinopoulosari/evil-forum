@@ -12,6 +12,10 @@ export const NO_CLIENT_ERROR = {
     frontEndMessage: "Database Error: Query Failed",
     debugMessage: `postgres error ${err}`,
   }),
+  DUPLICATE_USER_ERROR = {
+    frontEndMessage: "Could not create user, as they already exist",
+    debugMessage: "Could not create user, as they already exist",
+  },
   USER_ID_MISMATCH_ERROR = (userID) => ({
     frontEndMessage: `You may not edit or delete another user's content`,
     debugMessage: `attempt by ${userID} to edit or delete another user's content`,

@@ -31,7 +31,7 @@ export const dbGetSession = async (sessionID) => {
       const session = sessionQuery.rows[0];
       if (session.session_expires < new Date()) {
         console.log(
-          `Attempt to get session ${sessionID} (userID = ${session.session_user_id}) failed as session is expired.`,
+          `Attempt to get session ${sessionID} (userID = ${session.user_id}) failed as session is expired.`,
         );
         dbDeleteSession(sessionID);
         return undefined;
@@ -45,11 +45,7 @@ export const dbGetSession = async (sessionID) => {
           newExtension.getSeconds() + SESSION_EXPIRATION_SECONDS,
         );
         try {
-          await dbExtendSession(
-            sessionID,
-            session.session_user_id,
-            newExtension,
-          );
+          await dbExtendSession(sessionID, session.user_id, newExtension);
           session.session_expires = newExtension;
         } catch {}
       }
@@ -72,7 +68,7 @@ export const dbGetSession = async (sessionID) => {
     const sessionID = crypto.randomUUID();
     try {
       await client.query(
-        "insert into user_sessions(session_id, session_user_id, session_expires, session_ip, session_opened) values($1, $2, $3, $4, NOW());",
+        "insert into user_sessions(session_id, user_id, session_expires, session_ip, session_opened) values($1, $2, $3, $4, NOW());",
         [sessionID, userID, expires, ipAddress],
       );
       console.log(`Created session for user ${userID}`);
@@ -95,7 +91,7 @@ export const dbGetSession = async (sessionID) => {
     validateArgument("expires", expires, [paramArgumentNonNull]);
     try {
       currentSessionQuery = await client.query(
-        "select session_opened, session_expires from user_sessions where session_id = $1 and session_user_id = $2 limit 1",
+        "select session_opened, session_expires from user_sessions where session_id = $1 and user_id = $2 limit 1",
         [sessionID, userID],
       );
     } catch (err) {
@@ -123,7 +119,7 @@ export const dbGetSession = async (sessionID) => {
     }
     try {
       const extendSessionQuery = await client.query(
-        "update user_sessions set session_expires = $1 where session_id = $1 and session_user_id = $2",
+        "update user_sessions set session_expires = $1 where session_id = $1 and user_id = $2",
         [expires, sessionID, userID],
       );
       return extendSessionQuery;
@@ -151,7 +147,7 @@ export const dbGetSession = async (sessionID) => {
       dbDeleteSession(sessionID);
       return { passed: false, reason: "IP mismatch. session deleted" };
     }
-    if (session.session_user_id !== userID) {
+    if (session.user_id !== userID) {
       return { passed: false, reason: "userID mismatch" };
     }
     return { passed: true, session: session };
