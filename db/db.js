@@ -25,7 +25,7 @@ export const dbSession = session({
     secret: SECRETS.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false },
+    cookie: { secure: false, httpOnly: true },
   }),
   setupDB = async () => {
     if (client === undefined) {
