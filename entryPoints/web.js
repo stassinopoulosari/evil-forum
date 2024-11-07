@@ -26,6 +26,7 @@ express()
   )
   // Session is for OAuth only
   .use(dbSession)
+  .set("trust proxy", 1)
   // Incorporate API and authentication routers
   .use("/api", api)
   .use("/auth", auth.authenticationRouter)
