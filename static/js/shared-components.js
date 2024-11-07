@@ -1,4 +1,4 @@
-import { deletePost, getMe, voteOnPost } from "./api.js";
+import { deletePost, getMe, voteOnComment, voteOnPost } from "./api.js";
 import { getCurrentSession } from "./session.js";
 import {
   addEllipsis,
@@ -178,7 +178,6 @@ export const $postElement = (post) =>
       post.post_votes,
       post.vote_positive,
       async (voteValue) => {
-        console.log(post);
         voteOnPost(await getCurrentSession(), post.post_id, voteValue);
       },
       post.post_deleted,

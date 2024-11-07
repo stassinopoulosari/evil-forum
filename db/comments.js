@@ -314,6 +314,7 @@ export const dbGetCommentsForPost = async (postID, page, userID) => {
         console.error(err),
       );
       returnedComment.comment_votes = 1;
+      console.log(replyTo);
       if (replyTo !== null) {
         dbQueueCommentReplyNotification(postID, replyTo, comment, userID);
       } else {
@@ -337,7 +338,8 @@ export const dbGetCommentsForPost = async (postID, page, userID) => {
       childCommentUser = await dbGetUser(childCommentUserID),
       childCommentUsername = childCommentUser.user_username,
       childCommentDisplayName = childCommentUser.user_displayname;
-    if (postUserID === childCommentUserID) return;
+    console.log("queuing e-mail", parentCommentUserID, childCommentUserID);
+    if (parentCommentUserID === childCommentUserID) return;
     dbQueueNotification(parentCommentUserID, "comment_reply", {
       header: `A reply has been made to your comment on "${post.post_title}"`,
       body: `User ${san(childCommentDisplayName)} <${san(childCommentUsername)}> has replied:
