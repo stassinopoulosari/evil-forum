@@ -20,7 +20,9 @@ export const $commentWidget = (
     $newCommentWidget,
     postID,
   ) => {
-    const $replyButton = update(
+    let $replyButton, $replyWidget;
+    if (!hideReply) {
+      $replyButton = update(
         attr(make("a"), {
           disabled:
             !loggedIn ||
@@ -39,11 +41,12 @@ export const $commentWidget = (
             return false;
           },
         },
-      ),
+      );
       $replyWidget = style(
         $newCommentWidget(postID, comment.comment_id, $replyButton),
         { display: "none" },
       );
+    }
     return children(classes(make("div"), ["comment"]), [
       $voteWidget(
         comment.comment_votes,
@@ -98,7 +101,7 @@ export const $commentWidget = (
               ]
             : []),
         ]),
-        $replyWidget,
+        ...(!hideReply ? [$replyWidget] : []),
         children(classes(make("div"), ["content"]), [
           ...(getChildrenOf !== undefined
             ? getChildrenOf(comment.comment_id).map((childComment) =>

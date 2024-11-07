@@ -25,10 +25,14 @@ export const routeGetUserMe = async (req, res) => {
       });
     }
     try {
+      const [userInformation, userContent] = await Promise.all([
+        dbGetUserByUsername(username, requestorUserID),
+        dbGetUserContent(username, requestorUserID, passedPage),
+      ]);
       return res.json({
         status: true,
-        user: await dbGetUserByUsername(username, requestorUserID),
-        content: await dbGetUserContent(username, requestorUserID, passedPage),
+        user: userInformation,
+        content: userContent,
       });
     } catch (err) {
       res.status(500);

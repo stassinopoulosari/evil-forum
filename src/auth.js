@@ -109,7 +109,7 @@ authenticationRouter
 
       res.redirect(redirectURI);
     } else {
-      res.sendFile("views/auth-google.html", { root: "." });
+      res.sendFile("views/auth-google.html", { root: "./static" });
     }
   })
   .get("/createSession", async (req, res) => {

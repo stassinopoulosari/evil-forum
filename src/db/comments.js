@@ -351,7 +351,7 @@ See more at ${PROTOCOL}://${DOMAIN}/posts/${postID}`,
   <h1>A reply has been made to your comment on "${san(post.post_title)}"</h1>
   <p>User ${san(childCommentDisplayName)} <${san(childCommentUsername)}> has replied:</p>
   <p style='font-family: monospace; margin-left: 1em;'>
-  &gt;${san(comment.content).split(/\r|\n/g).join("<br/>&gt; ")}
+  &gt; ${san(comment.content).split(/\r|\n/g).join("<br/>&gt; ")}
   </p>
   <p><i>See more at <a href="${PROTOCOL}://${DOMAIN}/posts/${postID}">/posts/${postID}</a></i></p>
 `,
