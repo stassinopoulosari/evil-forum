@@ -12,6 +12,7 @@ import {
   children,
   classes,
   make,
+  renderTime,
   separator,
   style,
   update,
@@ -120,7 +121,10 @@ export const $commentWidget = (
           $commentParagraph,
           children(make("div"), [
             update(make("i"), {
-              innerText: `${comment.comment_timestamp}${comment.comment_edited_at ? "*" : ""}`,
+              innerText: `${renderTime(comment.comment_timestamp)}${comment.comment_edited_at ? "*" : ""}`,
+              title: comment.comment_edited_at
+                ? `edited ${renderTime(comment.comment_edited_at)}`
+                : "not edited",
             }),
             ...(!hideReply
               ? [
@@ -284,9 +288,9 @@ export const $postWidget = (post, dummyVote) =>
           innerText: " • ",
         }),
         update(make("i"), {
-          innerText: `${post.post_timestamp}${post.post_edited_at ? "*" : ""}`,
+          innerText: `${renderTime(post.post_timestamp)}${post.post_edited_at ? "*" : ""}`,
           title: post.post_edited_at
-            ? `edited at ${post.post_edited_at}`
+            ? `edited ${renderTime(post.post_edited_at)}`
             : "not edited",
         }),
         update(make("span"), {

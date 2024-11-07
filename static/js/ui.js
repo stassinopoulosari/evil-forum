@@ -105,6 +105,84 @@ export const addEllipsis = ($parent) => {
       $page[idComponents.join("_")] = $el;
     });
     return $page;
+  },
+  getSynonym = (withArticle) => {
+    const evilSynonyms = [
+      "evil",
+      "malevolent",
+      "sinister",
+      "inauspicious",
+      "wicked",
+      "vile",
+      "dishonourable",
+      "sinful",
+      "immoral",
+      "dastardly",
+      "perilous",
+      "hostile",
+      "miserable",
+      "grim",
+    ];
+    const synonym =
+      evilSynonyms[Math.floor(Math.random() * evilSynonyms.length)];
+    return `${withArticle ? `a${/^[aeiou]/.test(synonym) ? "n" : ""} ` : ""}${synonym}`;
+  },
+  renderTime = (timestamp) => {
+    const date = new Date(Date.parse(timestamp)),
+      secondsAgo = (Date.now() - date.getTime()) / 1000,
+      minutesAgo = secondsAgo / 60,
+      hoursAgo = minutesAgo / 60,
+      daysAgo = hoursAgo / 24,
+      dayOfWeek = [
+        "sunday",
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+      ][date.getDay()],
+      fullDate = date.toLocaleDateString(),
+      todayFullDate = new Date().toLocaleDateString(),
+      time = date.toLocaleTimeString();
+    let evil = [];
+    if (date.getDate() === 13) {
+      evil.push(`on ${getSynonym(true)} day`);
+    } else if (date.getHours() === 13) {
+      evil.push(`at ${getSynonym(true)} hour`);
+    } else if (date.getMinutes() === 13) {
+      evil.push(`at ${getSynonym(true)} time`);
+    } else if (date.getSeconds() === 13) {
+      evil.push(`at ${getSynonym(true)} moment`);
+    }
+    if (evil.length !== 0) {
+      return evil.join(" ");
+    }
+    if (secondsAgo < 30) {
+      return "a few seconds ago";
+    } else if (secondsAgo < 60) {
+      return `${Math.floor(secondsAgo)} seconds ago`;
+    } else if (minutesAgo < 2) {
+      return "a minute or so ago";
+    } else if (minutesAgo < 5) {
+      return "a few minutes ago";
+    } else if (minutesAgo < 60) {
+      return `${Math.floor(minutesAgo)} minutes ago`;
+    } else if (hoursAgo < 1.5) {
+      return `about an hour ago`;
+    } else if (hoursAgo < 5) {
+      return `about ${Math.round(hoursAgo)} hours ago`;
+    } else if (daysAgo < 1 && fullDate === todayFullDate) {
+      return `at ${time}`;
+    } else if (daysAgo < 1) {
+      return `yesterday at ${time}`;
+    } else if (daysAgo < 2) {
+      return `about a day ago`;
+    } else if (daysAgo < 6) {
+      return `${dayOfWeek} at ${time}`;
+    } else {
+      return `${fullDate} at ${time}`;
+    }
   };
 
 // Progress ellipsis elements
