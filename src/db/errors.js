@@ -6,7 +6,7 @@ export const NO_CLIENT_ERROR = {
   },
   MALFORMED_PARAMETER_ERROR = (parameter, value) => ({
     frontEndMessage: "Database Error: Malformed parameter",
-    debugMessage: `undefined or malformed parameter ${parameter} = "${value}"`,
+    debugMessage: `undefined or malformed parameter ${parameter} = "${JSON.stringify(value)}"`,
   }),
   POSTGRES_ERROR = (err) => ({
     frontEndMessage: "Database Error: Query Failed",

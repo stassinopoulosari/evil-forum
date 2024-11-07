@@ -1,6 +1,6 @@
 import { getWithSession } from "./network.js";
 import { getCurrentSession } from "./session.js";
-import { $navBar, $postElement } from "./shared-components.js";
+import { $navBar, $postWidget } from "./shared-components.js";
 import { children, classes, make, make$Page, update } from "./ui.js";
 
 const $page = make$Page("homepage");
@@ -38,7 +38,9 @@ getWithSession(currentSession, "/api/homepage")
       update($page.postsContainer, { innerHTML: "" });
       children(
         $page.postsContainer,
-        posts.length > 0 ? posts.map($postElement) : [$noPostPlaceholder],
+        posts.length > 0
+          ? posts.map((post) => $postWidget(post))
+          : [$noPostPlaceholder],
       );
     } else {
       throw "Homepage did not load";

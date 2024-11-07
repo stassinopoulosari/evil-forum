@@ -1,4 +1,10 @@
-import { deletePost, getMe, voteOnComment, voteOnPost } from "./api.js";
+import {
+  deletePost,
+  editComment,
+  getMe,
+  voteOnComment,
+  voteOnPost,
+} from "./api.js";
 import { getCurrentSession } from "./session.js";
 import {
   addEllipsis,
@@ -37,7 +43,7 @@ export const $commentWidget = (
           innerText: "reply",
           onclick: () => {
             attr($replyButton, { disabled: true });
-            style($replyWidget, { display: "block" });
+            style($replyWidget, { display: "flex" });
             return false;
           },
         },
@@ -47,64 +53,123 @@ export const $commentWidget = (
         { display: "none" },
       );
     }
-    return children(classes(make("div"), ["comment"]), [
-      $voteWidget(
-        comment.comment_votes,
-        comment.vote_positive,
-        async (voteValue) => {
-          voteOnComment(
-            await getCurrentSession(),
-            comment.comment_id,
-            voteValue,
-          );
+    let isEditing = false;
+    console.log(comment);
+    const $editButton = update(make(comment.comment_edited_at ? "span" : "a"), {
+        innerText: "edit",
+        href: "#",
+        onclick: async (e) => {
+          e.preventDefault();
+          if (!isEditing) {
+            isEditing = true;
+            $commentParagraph.contentEditable = true;
+            $commentParagraph.focus();
+            $editButton.innerText = "save";
+          } else {
+            isEditing = false;
+            const newCommentText = $commentParagraph.innerText.trim();
+            if (newCommentText.length < 1) {
+              isEditing = true;
+              $editButton.innerText = "comment can't be empty :)";
+              return false;
+            }
+            $editButton.innerText = "saving...";
+            attr($editButton, { disabled: true });
+            try {
+              await editComment(
+                await getCurrentSession(),
+                comment.comment_id,
+                newCommentText,
+              );
+              $commentParagraph.contentEditable = false;
+              $editButton.innerText = "saved";
+            } catch (err) {
+              console.error(err);
+              isEditing = false;
+              $editButton.innerText = "failed to save. try again.";
+              attr($editButton, { disabled: undefined });
+            }
+          }
         },
-        comment.comment_deleted ? true : false,
-      ),
-      children(make("div"), [
-        update(make("a"), {
-          innerText: comment.user_displayname ?? "[nobody]",
-          href:
-            comment.user_username === null
-              ? ""
-              : `/users/${comment.user_username}`,
-        }),
-        update(make("p"), {
-          innerText: comment.comment_content,
-        }),
+      }),
+      $commentParagraph = update(make("p"), {
+        innerText: comment.comment_content,
+      });
+    return children(classes(make("div"), ["comment"]), [
+      children(classes(make("div"), ["comment-body"]), [
+        $voteWidget(
+          comment.comment_votes,
+          comment.vote_positive,
+          async (voteValue) => {
+            voteOnComment(
+              await getCurrentSession(),
+              comment.comment_id,
+              voteValue,
+            );
+          },
+          comment.comment_deleted ? true : false,
+        ),
         children(make("div"), [
-          ...(!hideReply ? [$replyButton] : []),
-          ...(comment.comment_mine === true
-            ? [
-                update(make("span"), {
-                  innerText: " • ",
-                }),
-                update(make("a"), {
-                  innerText: "delete",
-                  href: `#`,
-                  onclick: () => {
-                    if (
-                      confirm(
-                        "Are you sure you would like to delete this comment",
+          update(make("a"), {
+            innerText: comment.user_displayname ?? "[nobody]",
+            href:
+              comment.user_username === null
+                ? ""
+                : `/users/${comment.user_username}`,
+          }),
+          $commentParagraph,
+          children(make("div"), [
+            update(make("i"), {
+              innerText: `${comment.comment_timestamp}${comment.comment_edited_at ? "*" : ""}`,
+            }),
+            ...(!hideReply
+              ? [
+                  update(make("span"), {
+                    innerText: " • ",
+                  }),
+                  $replyButton,
+                ]
+              : []),
+            ...(comment.comment_mine === true
+              ? [
+                  update(make("span"), {
+                    innerText: " • ",
+                  }),
+                  $editButton,
+                  update(make("span"), {
+                    innerText: " • ",
+                  }),
+                  update(make("a"), {
+                    innerText: "delete",
+                    href: `#`,
+                    onclick: () => {
+                      if (
+                        confirm(
+                          "Are you sure you would like to delete this comment",
+                        )
                       )
-                    )
-                      (async () => {
-                        await deleteComment(
-                          await getCurrentSession(),
-                          comment.comment_id,
-                        );
-                        alert("Comment deleted");
-                        // TODO show comment deleted visually
-                      })();
-                    return false;
-                  },
-                }),
-              ]
-            : []),
+                        (async () => {
+                          await deleteComment(
+                            await getCurrentSession(),
+                            comment.comment_id,
+                          );
+                          alert("Comment deleted");
+                          // TODO show comment deleted visually
+                        })();
+                      return false;
+                    },
+                  }),
+                ]
+              : []),
+          ]),
         ]),
-        ...(!hideReply ? [$replyWidget] : []),
-        children(classes(make("div"), ["content"]), [
-          ...(getChildrenOf !== undefined
-            ? getChildrenOf(comment.comment_id).map((childComment) =>
+      ]),
+      ...(!hideReply ? [$replyWidget] : []),
+      ...(getChildrenOf !== undefined
+        ? [
+            children(
+              classes(make("div"), ["comment-children"]),
+              getChildrenOf(comment.comment_id).map((childComment) =>
                 $commentWidget(
                   childComment,
                   getChildrenOf,
@@ -113,12 +178,13 @@ export const $commentWidget = (
                   $newCommentWidget,
                   postID,
                 ),
-              )
-            : []),
-        ]),
-      ]),
+              ),
+            ),
+          ]
+        : []),
     ]);
   },
+  $dummyVoteWidget = () => $voteWidget(">:3", true, () => {}, true),
   $voteWidget = (votes, vote_positive, onVote, disabled) => {
     const $parent = classes(make("div"), ["vote"]),
       $upButton = classes(
@@ -171,20 +237,22 @@ const getHostnameForURL = (url) => {
   try {
     return new URL(url).host;
   } catch {
-    return undefined;
+    return "self";
   }
 };
-export const $postElement = (post) =>
+export const $postWidget = (post, dummyVote) =>
   children(classes(make("div"), ["post"]), [
     // Votes
-    $voteWidget(
-      post.post_votes,
-      post.vote_positive,
-      async (voteValue) => {
-        voteOnPost(await getCurrentSession(), post.post_id, voteValue);
-      },
-      post.post_deleted,
-    ),
+    !dummyVote
+      ? $voteWidget(
+          post.post_votes,
+          post.vote_positive,
+          async (voteValue) => {
+            voteOnPost(await getCurrentSession(), post.post_id, voteValue);
+          },
+          post.post_deleted,
+        )
+      : $dummyVoteWidget(),
     children(classes(make("div"), ["post-stack"]), [
       // Post title
       children(
@@ -215,6 +283,15 @@ export const $postElement = (post) =>
         update(make("span"), {
           innerText: " • ",
         }),
+        update(make("i"), {
+          innerText: `${post.post_timestamp}${post.post_edited_at ? "*" : ""}`,
+          title: post.post_edited_at
+            ? `edited at ${post.post_edited_at}`
+            : "not edited",
+        }),
+        update(make("span"), {
+          innerText: " • ",
+        }),
         // Comments Link
         update(make("a"), {
           href: `/posts/${post.post_id}`,
@@ -228,10 +305,10 @@ export const $postElement = (post) =>
                     update(make("span"), {
                       innerText: " • ",
                     }),
-                    update(make("a"), {
+                    update(make(post.post_edited_at ? "span" : "a"), {
                       innerText: "edit",
                       href: `/posts/${post.post_id}/edit`,
-                      disabled: post.post_modified_at !== null,
+                      disabled: post.post_edited_at !== null,
                     }),
                   ]
                 : []),

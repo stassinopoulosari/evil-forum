@@ -29,10 +29,19 @@
         <div class="content">
             <h1>new post</h1>
             <i>posting as <span id="newPost-username"></span></i>
+            <br />
+            <br />
+            <i>post preview</i>
+            <div class="dummy-post" id="newPost-dummyPost"></div>
             <form action="." id="newPost-form">
                 <div class="form-group">
                     <label for="newPost-postTitle">title</label>
-                    <input type="text" id="newPost-postTitle" required />
+                    <input
+                        type="text"
+                        id="newPost-postTitle"
+                        placeholder="my evil plan"
+                        required
+                    />
                 </div>
                 <div class="form-group">
                     <div class="form-subgroup">
@@ -79,7 +88,7 @@
                     <input
                         type="url"
                         id="newPost-postLinkContent"
-                        placeholder="share your sinister links"
+                        placeholder="https://sinister.link/"
                     />
                 </div>
                 <input type="submit" />

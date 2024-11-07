@@ -1,12 +1,10 @@
 import { dbGetHomepage } from "../db/homepage.js";
 
 export const routeGetHomepage = async (req, res) => {
+  // Query string page is always a String
   const passedPage =
-    req.query.page === undefined ? undefined : parseInt(req.query.page);
-  let userID = undefined;
-  if (req.evilSession !== undefined && req.evilUserID !== undefined) {
+      req.query.page === undefined ? undefined : parseInt(req.query.page),
     userID = req.evilUserID;
-  }
   if (passedPage !== undefined && (isNaN(passedPage) || passedPage < 0)) {
     res.status(400);
     return res.json({

@@ -88,17 +88,20 @@ export const dbCreatePost = async (userID, post) => {
       paramArgumentStringNotBlank,
     ]);
 
-    const existingPost = await dbGetPost(postID);
+    const [existingPost, postCommentable, userActive] = await Promise.all([
+      dbGetPost(postID),
+      dbPostCommentable(postID),
+      dbUserActive(userID),
+    ]);
+
     if (existingPost === undefined)
       throw PERMISSION_ENTITY_DELETED_ERROR("post", postID);
     if (existingPost.post_locked !== null)
       throw PERMISSION_ENTITY_LOCKED_ERROR("post", postID);
     if (existingPost.user_id !== userID) throw USER_ID_MISMATCH_ERROR(userID);
     if (existingPost.post_edited_at !== null) throw MULTIPLE_EDIT_ERROR;
-    if (!(await dbPostCommentable(existingPost)))
-      throw PERMISSION_ENTITY_LOCKED_ERROR("post", postID);
-    if (!(await dbUserActive(userID)))
-      throw PERMISSION_USER_BANNED_ERROR(userID);
+    if (!postCommentable) throw PERMISSION_ENTITY_LOCKED_ERROR("post", postID);
+    if (!userActive) throw PERMISSION_USER_BANNED_ERROR(userID);
     if (existingPost.post_link !== null) throw LINK_POST_EDIT_ERROR;
     try {
       await client.query(
@@ -123,13 +126,17 @@ export const dbCreatePost = async (userID, post) => {
       paramArgumentNonNull,
       paramArgumentString,
     ]);
-    const existingPost = await dbGetPost(postID);
+
+    const [existingPost, userActive] = await Promise.all([
+      dbGetPost(postID),
+      dbUserActive(userID),
+    ]);
+
     if (existingPost === undefined || existingPost.post_deleted === true)
       throw PERMISSION_ENTITY_DELETED_ERROR("post", postID);
     console.log(existingPost.user_id, userID);
     if (existingPost.user_id !== userID) throw USER_ID_MISMATCH_ERROR(userID);
-    if (!(await dbUserActive(userID)))
-      throw PERMISSION_USER_BANNED_ERROR(userID);
+    if (!userActive) throw PERMISSION_USER_BANNED_ERROR(userID);
     try {
       await client.query(
         `
@@ -189,20 +196,14 @@ export const dbCreatePost = async (userID, post) => {
           post_edited_at,
           user_displayname,
           post_deleted,
-          user_username
-          ${userID === undefined ? "" : `, vote_positive, case when posts.user_id = $2 then TRUE else FALSE end as post_mine`}
+          user_username,
+          vote_positive, case when posts.user_id = $2 then TRUE else FALSE end as post_mine
         from
           posts
           left join users on posts.user_id = users.user_id
-          ${
-            userID !== undefined
-              ? `
-              left join post_votes on posts.post_id = post_votes.post_id and post_votes.user_id = $2
-              `
-              : ""
-          }
+          left join post_votes on posts.post_id = post_votes.post_id and post_votes.user_id = $2
         where posts.post_id = $1 limit 1;`,
-        [postID, ...(userID === undefined ? [] : [userID])],
+        [postID, userID],
       );
     } catch (err) {
       throw POSTGRES_ERROR(err);
@@ -246,10 +247,12 @@ export const dbCreatePost = async (userID, post) => {
     }
   },
   dbQueuePostReplyNotification = async (postID, comment, userID) => {
-    const post = await dbGetPost(postID),
+    const [post, childCommentUser] = await Promise.all([
+        dbGetPost(postID),
+        dbGetUser(childCommentUserID),
+      ]),
       postUserID = post.user_id,
       childCommentUserID = userID,
-      childCommentUser = await dbGetUser(childCommentUserID),
       childCommentUsername = childCommentUser.user_username,
       childCommentDisplayName = childCommentUser.user_displayname;
     if (postUserID === childCommentUserID) return;

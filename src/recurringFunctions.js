@@ -14,9 +14,9 @@ const everyThirtySeconds = new Task("everyMinute", async () => {
         "MARK - 30 seconds. Deleting past sessions and sending e-mail.",
       );
       // Delete old sessions
-      console.log((await dbDeletePastSessions()).rowCount);
+      console.log("[sessions]", (await dbDeletePastSessions()).rowCount);
       // Send e-mail
-      sendEmailNotifications();
+      console.log("[mail]", await sendEmailNotifications());
     } catch (err) {
       console.error(err);
     }
@@ -30,7 +30,7 @@ const everyTenMinutes = new Task("everyTenMinutes", async () => {
     try {
       console.log("MARK - 10 minutes. Recalculating homepage.");
       // Delete old sessions
-      console.log((await dbCalculatePostScores()).rowCount);
+      console.log("[homepage]", (await dbCalculatePostScores()).rowCount);
     } catch (err) {
       console.error(err);
     }
@@ -44,7 +44,8 @@ const everyHour = new Task("everyHour", async () => {
         date = new Date();
       date.setSeconds(date.getSeconds() - oneDayInSeconds);
       console.log(
-        await dbCalculateVotesForPostsOnInterval(date, new Date()).rowCount,
+        "[post votes (today)]",
+        (await dbCalculateVotesForPostsOnInterval(date, new Date())).rowCount,
       );
     } catch (err) {
       console.error(err);
@@ -58,12 +59,17 @@ const everyDay = new Task("everyDay", async () => {
     const beginningOfTime = new Date();
     beginningOfTime.setTime(0);
     console.log(
-      (await dbCalculateVotesForPostsOnInterval(beginningOfTime, new Date()))
-        .rowCount,
+      "[post votes (all time)]"(
+        await dbCalculateVotesForPostsOnInterval(beginningOfTime, new Date()),
+      ).rowCount,
     );
     console.log(
-      (await dbCalculateVotesForCommentsOnInterval(beginningOfTime, new Date()))
-        .rowCount,
+      "[comment votes(all time)]"(
+        await dbCalculateVotesForCommentsOnInterval(
+          beginningOfTime,
+          new Date(),
+        ),
+      ).rowCount,
     );
   }),
   everyDayJob = new SimpleIntervalJob({ days: 1 }, everyDay);

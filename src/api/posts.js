@@ -10,7 +10,7 @@ import { MAX_POST_LENGTH, MAX_POST_TITLE_LENGTH } from "../config.js";
 
 export const routeGetPost = async (req, res) => {
     const postID = parseInt(req.params.postID);
-    const userID = req.evilUserID ?? undefined;
+    const userID = req.evilUserID;
     try {
       res.json({
         status: true,
@@ -26,6 +26,7 @@ export const routeGetPost = async (req, res) => {
     }
   },
   routeEditPost = async (req, res) => {
+    // Authentication required for this route
     if (req.evilSession === undefined || req.evilUserID === undefined) {
       return authenticationFailError(res, "edit post");
     }
@@ -60,6 +61,7 @@ export const routeGetPost = async (req, res) => {
     }
   },
   routeDeletePost = async (req, res) => {
+    // Authentication required for this route
     if (req.evilSession === undefined || req.evilUserID === undefined) {
       return authenticationFailError(res, "delete post");
     }
@@ -73,6 +75,7 @@ export const routeGetPost = async (req, res) => {
       });
     }
     try {
+      // Good idea to log something like this
       console.log(
         `Attempting to delete post with userID=${userID}, postID=${postID}`,
       );
@@ -85,21 +88,26 @@ export const routeGetPost = async (req, res) => {
     }
   },
   routePostNewPost = async (req, res) => {
+    // Authentication required for this route
     if (req.evilSession === undefined || req.evilUserID === undefined) {
       return authenticationFailError(res, "create post");
     }
     const passedPost = req.body.post,
       userID = req.evilUserID;
     if (
+      // Form content must be passed
       Object.keys(req.body).length === 0 ||
       passedPost === undefined ||
       typeof passedPost !== "object" ||
       typeof passedPost.title !== "string" ||
+      // Post must have a non-empty title
       passedPost.title.length < 1 ||
       passedPost.title.length > MAX_POST_TITLE_LENGTH ||
+      // Post must have text of proper length
       (passedPost.text !== undefined &&
         passedPost.text.trim().length < 1 &&
         passedPost.text.trim().length > MAX_POST_LENGTH) ||
+      // Post cannot be both link and text
       (passedPost.link === undefined && passedPost.text === undefined) ||
       (passedPost.link !== undefined && passedPost.text !== undefined)
     ) {
@@ -112,6 +120,7 @@ export const routeGetPost = async (req, res) => {
     const post = {
       title: passedPost.title,
     };
+    // Validate URI
     if (passedPost.link !== undefined) {
       try {
         const linkURL = new URL(passedPost.link);
@@ -120,6 +129,7 @@ export const routeGetPost = async (req, res) => {
         }
         post.link = passedPost.link;
       } catch {
+        // This will be triggered if the constructor can't parse the URI
         res.status(400);
         return res.json({
           success: false,
@@ -140,25 +150,4 @@ export const routeGetPost = async (req, res) => {
       console.error(err);
       res.json({ success: false, error: err.frontEndMessage ?? err });
     }
-  },
-  routeGetEditPost = (req, res) => {
-    res.status(400);
-    return res.json({
-      success: false,
-      ...DOCS.EDIT_POST,
-    });
-  },
-  routeGetDeletePost = (req, res) => {
-    res.status(400);
-    return res.json({
-      success: false,
-      ...DOCS.DELETE_POST,
-    });
-  },
-  routeGetNewPost = (req, res) => {
-    res.status(400);
-    return res.json({
-      success: false,
-      ...DOCS.NEW_POST,
-    });
   };

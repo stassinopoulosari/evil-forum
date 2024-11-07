@@ -16,6 +16,7 @@ import {
 } from "./db.js";
 import {
   MAX_COMMENT_DEPTH_ERROR,
+  MULTIPLE_EDIT_ERROR,
   NO_CLIENT_ERROR,
   PERMISSION_ENTITY_DELETED_ERROR,
   PERMISSION_ENTITY_LOCKED_ERROR,
@@ -57,6 +58,7 @@ export const dbGetCommentsForPost = async (postID, page, userID) => {
               comment_votes,
               comment_content,
               comment_timestamp,
+              comment_edited_at,
               comment_locked,
               comment_deleted,
               comment_deletion_reason,
@@ -83,6 +85,7 @@ export const dbGetCommentsForPost = async (postID, page, userID) => {
               comment_votes,
               comment_content,
               comment_timestamp,
+              comment_edited_at,
               comment_locked,
               comment_deleted,
               comment_deletion_reason,
@@ -107,6 +110,7 @@ export const dbGetCommentsForPost = async (postID, page, userID) => {
             user_displayname,
             comment_replyto,
             comment_root,
+            comment_edited_at,
             comment_votes,
             comment_content,
             comment_deleted,

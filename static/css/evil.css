@@ -15,6 +15,16 @@ body {
     font-family: "Fira Sans", sans-serif;
 }
 
+h1,
+h2 {
+    margin-bottom: 0;
+    margin-top: 0.5em;
+}
+
+#user-userContent {
+    margin-top: 1em;
+}
+
 nav {
     padding: 1em;
     display: flex;
@@ -33,18 +43,32 @@ nav a:first-child img {
 a {
     color: #383961;
 }
-a[disabled] {
+a[disabled],
+.dummy-post a {
     color: #000;
     pointer-events: none;
     cursor: not-allowed;
 }
 
-input,
+input {
+    padding: 0.5rem;
+    border: 0.1px solid #000;
+    border-radius: 0.5rem;
+}
+
+input[type="text"],
+input[type="url"],
 textarea {
     padding: 0.5rem;
     border: 0.1px solid #000;
     border-radius: 0.5rem;
     font-family: "Fira Code", monospace;
+    min-width: 40vw;
+}
+
+textarea {
+    min-width: 50vw;
+    min-height: 10vh;
 }
 
 input[type="submit"] {
@@ -60,7 +84,14 @@ span.spacer {
 .no-post-placeholder {
     text-align: center;
 }
-
+.post-content {
+    margin: 1em;
+    margin-top: 0;
+    padding: 0.5em;
+    border: 0.5px solid #000;
+    background-color: rgba(159, 160, 195, 0.3);
+    border-radius: 0.5rem;
+}
 .content {
     padding-left: 1em;
     padding-bottom: 1em;
@@ -85,9 +116,38 @@ label {
 }
 
 .comment {
+    border-left: 0.5px solid #9fa0c3;
+    margin-top: 2em;
+    padding-top: 0.25em;
+    padding-left: 0.25em;
+}
+.comment-body {
     display: flex;
     flex-direction: row;
     align-items: baseline;
+}
+.comment-children .comment {
+    border: none;
+    position: relative;
+}
+
+.comment-children .comment::after {
+    content: " ";
+    position: absolute;
+    top: 0;
+    right: 100%;
+    left: -1.75em;
+    bottom: 0.5rem;
+    border-top: 0.5px solid #9fa0c3;
+    border-right: 0.5px solid #9fa0c3;
+    border-radius: 0 0.5rem 0 0;
+}
+
+.comment-children {
+    margin-left: 1.5em;
+}
+.comment-children .comment {
+    margin-top: 1em;
 }
 
 .post .post-stack {
@@ -104,6 +164,7 @@ label {
     align-items: center;
     justify-content: center;
     margin-right: 1em;
+    width: 3em;
 }
 .vote-up,
 .vote-down {
@@ -116,8 +177,41 @@ label {
     color: #fff;
 }
 
+.user-view-comment {
+    margin-bottom: 2em;
+}
+
+.user-view-comment .comment {
+    margin-top: 0.5em;
+}
+
+.user-view-post {
+    margin-bottom: 2em;
+    padding: 0;
+}
+
+.new-comment {
+    display: flex;
+    flex-direction: column;
+    padding: 1em;
+    padding-top: 0;
+}
+
+.comment .new-comment {
+    /* margin-left: -4em; */
+    margin-top: 1em;
+    width: 80%;
+}
+
 #authGoogle-content {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.dummy-post {
+    padding: 0.25rem;
+    margin: 0.25rem;
+    opacity: 0.75;
+    background-color: #aed9e0;
 }

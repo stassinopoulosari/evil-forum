@@ -3,30 +3,20 @@ import { passSession } from "../auth.js";
 import {
   routeDeleteComment,
   routeEditComment,
-  routeGetDeleteComment,
-  routeGetEditComment,
-  routeGetNewComment,
   routeGetPostComments,
   routePostNewComment,
 } from "./comments.js";
 import {
   routeDeletePost,
   routeEditPost,
-  routeGetDeletePost,
-  routeGetEditPost,
-  routeGetNewPost,
   routeGetPost,
   routePostNewPost,
 } from "./posts.js";
 import { routeGetHomepage } from "./homepage.js";
-import {
-  routeGetCommentVote,
-  routeGetPostVote,
-  routePostCommentVote,
-  routePostPostVote,
-} from "./votes.js";
+import { routePostCommentVote, routePostPostVote } from "./votes.js";
 import { routeGetUserMe, routeGetUser } from "./users.js";
 import { rateLimit } from "express-rate-limit";
+import { DOCS, rejectWithDocs } from "./apiDocs.js";
 
 const router = Router();
 
@@ -46,47 +36,48 @@ router.use(passSession).use(
 );
 
 // Route post modification functions
-router.post("/posts/new", routePostNewPost).get("/posts/new", routeGetNewPost);
+router
+  .post("/posts/new", routePostNewPost)
+  .get("/posts/new", rejectWithDocs(DOCS.NEW_POST));
 
 router
   .post("/posts/:postID/vote", routePostPostVote)
-  .get("/posts/:postID/vote", routeGetPostVote);
+  // Show errors for wrong request type
+  .get("/posts/:postID/vote", rejectWithDocs(DOCS.VOTE_POST));
 
-// TODO delete post
 router
   .delete("/posts/:postID/delete", routeDeletePost)
   // Show errors for wrong request type
-  .post("/posts/:postID/delete", routeGetDeletePost)
-  .get("/posts/:postID/delete", routeGetDeletePost);
+  .post("/posts/:postID/delete", rejectWithDocs(DOCS.DELETE_POST))
+  .get("/posts/:postID/delete", rejectWithDocs(DOCS.DELETE_POST));
 
-// TODO edit post
 router
   .put("/posts/:postID/edit", routeEditPost)
   // Show errors for wrong request type
-  .post("/posts/:postID/edit", routeGetEditPost)
-  .get("/posts/:postID/edit", routeGetEditPost);
+  .post("/posts/:postID/edit", rejectWithDocs(DOCS.EDIT_POST))
+  .get("/posts/:postID/edit", rejectWithDocs(DOCS.EDIT_POST));
 
 // Route comment modification functions
 
 router
   .post("/comments/new", routePostNewComment)
-  .get("/comments/new", routeGetNewComment);
+  .get("/comments/new", rejectWithDocs(DOCS.NEW_COMMENT));
 
 router
   .post("/comments/:commentID/vote", routePostCommentVote)
-  .get("/comments/:commentID/vote", routeGetCommentVote);
+  .get("/comments/:commentID/vote", rejectWithDocs(DOCS.VOTE_COMMENT));
 
 router
   .delete("/comments/:commentID/delete", routeDeleteComment)
   // Show errors for wrong request type
-  .get("/comments/:commentID/delete", routeGetDeleteComment)
-  .post("/comments/:commentID/delete", routeGetDeleteComment);
+  .get("/comments/:commentID/delete", rejectWithDocs(DOCS.DELETE_COMMENT))
+  .post("/comments/:commentID/delete", rejectWithDocs(DOCS.DELETE_COMMENT));
 
 router
   .put("/comments/:commentID/edit", routeEditComment)
   // Show errors for wrong request type
-  .get("/comments/:commentID/edit", routeGetEditComment)
-  .post("/comments/:commentID/edit", routeGetEditComment);
+  .get("/comments/:commentID/edit", rejectWithDocs(DOCS.EDIT_COMMENT))
+  .post("/comments/:commentID/edit", rejectWithDocs(DOCS.EDIT_COMMENT));
 
 // Route homepage and user-facing GETs
 

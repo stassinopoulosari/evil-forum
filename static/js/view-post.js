@@ -4,7 +4,7 @@ import { getCurrentSession } from "./session.js";
 import {
   $commentWidget,
   $navBar,
-  $postElement,
+  $postWidget,
   $voteWidget,
 } from "./shared-components.js";
 import {
@@ -39,7 +39,7 @@ if (isNaN(postID) || postID < 0) {
 
 const $newCommentWidget = (postID, replyTo, $replyButton) => {
   const $commentContent = update(make("textarea"), { required: true }),
-    $newCommentContainer = make("form");
+    $newCommentContainer = classes(make("form"), ["new-comment"]);
   return children(
     update($newCommentContainer, {
       onsubmit: (event) => {
@@ -83,16 +83,25 @@ const $newCommentWidget = (postID, replyTo, $replyButton) => {
 
 (async () => {
   try {
-    const postInfo = await getWithSession(
+    const postPromise = getWithSession(currentSession, `/api/posts/${postID}`),
+      commentsPromise = getWithSession(
         currentSession,
-        `/api/posts/${postID}`,
-      ),
-      post = postInfo.json.post;
+        `/api/posts/${postID}/comments`,
+      );
+    const [postInfo, commentsResponse] = await Promise.all([
+        postPromise,
+        commentsPromise,
+      ]),
+      post = postInfo.json.post,
+      comments = commentsResponse.json.comments,
+      getChildrenOf = (commentID) =>
+        comments.filter((comment) => comment.comment_replyto === commentID),
+      firstLevelComments = getChildrenOf(null);
     children($page.postSummary, [
-      $postElement(post),
+      $postWidget(post),
       ...(post.post_text !== null
         ? [
-            update(classes(make("p"), ["content"]), {
+            update(classes(make("p"), ["post-content"]), {
               innerText: post.post_text,
             }),
           ]
@@ -101,12 +110,6 @@ const $newCommentWidget = (postID, replyTo, $replyButton) => {
         ? []
         : [$newCommentWidget(postID)]),
     ]);
-    const comments = (
-        await getWithSession(currentSession, `/api/posts/${postID}/comments`)
-      ).json.comments,
-      getChildrenOf = (commentID) =>
-        comments.filter((comment) => comment.comment_replyto === commentID),
-      firstLevelComments = getChildrenOf(null);
     children(
       $page.comments,
       firstLevelComments.map((comment) =>
@@ -120,7 +123,6 @@ const $newCommentWidget = (postID, replyTo, $replyButton) => {
         ),
       ),
     );
-    console.log(comments);
   } catch (error) {
     renderPostNotFound();
     throw error;

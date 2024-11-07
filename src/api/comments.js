@@ -5,21 +5,21 @@ import {
   dbEditComment,
   dbGetCommentsForPost,
 } from "../db/comments.js";
+import { DOCS } from "./apiDocs.js";
 
 export const routeGetPostComments = async (req, res) => {
     const postID = parseInt(req.params.postID),
       passedPage = req.query.page,
       userID = req.evilUserID;
-    if (
-      passedPage !== undefined &&
-      (typeof passedPage !== "number" || passedPage < 0)
-    ) {
+    // Reject invalid page numbers
+    if (passedPage !== undefined && (isNaN(passedPage) || passedPage < 0)) {
       res.status(400);
       return res.json({
         status: false,
         error: "Page must be a number >= 0",
       });
     }
+    // Get requested comments and send them to the user
     try {
       res.json({
         status: true,
@@ -35,20 +35,18 @@ export const routeGetPostComments = async (req, res) => {
     }
   },
   routeDeleteComment = async (req, res) => {
+    // Authentication required for this route
     if (req.evilSession === undefined || req.evilUserID === undefined) {
       return authenticationFailError(res, "delete comment");
     }
     const commentID = parseInt(req.params.commentID),
       userID = req.evilUserID;
-    if (
-      commentID === undefined ||
-      isNaN(commentID) ||
-      typeof commentID !== "number"
-    ) {
+    if (commentID === undefined || isNaN(commentID)) {
       res.status(400);
       return res.json({
         success: false,
         ...DOCS.DELETE_COMMENT,
+        error: "Comment ID must be defined and a number",
       });
     }
     try {
@@ -61,6 +59,7 @@ export const routeGetPostComments = async (req, res) => {
     }
   },
   routeEditComment = async (req, res) => {
+    // Authentication required for this route
     if (req.evilSession === undefined || req.evilUserID === undefined) {
       return authenticationFailError(res, "edit comment");
     }
@@ -73,7 +72,7 @@ export const routeGetPostComments = async (req, res) => {
       typeof commentID !== "number" ||
       passedContent === undefined ||
       typeof passedContent !== "string" ||
-      passedContent.trim().length < 2
+      passedContent.trim().length < 1
     ) {
       res.status(400);
       return res.json({
@@ -91,6 +90,7 @@ export const routeGetPostComments = async (req, res) => {
     }
   },
   routePostNewComment = async (req, res) => {
+    // Authentication required for this route
     if (req.evilSession === undefined || req.evilUserID === undefined) {
       return authenticationFailError(res, "create comment");
     }
@@ -130,25 +130,4 @@ export const routeGetPostComments = async (req, res) => {
       console.error(err);
       res.json({ success: false, error: err.frontEndMessage ?? err });
     }
-  },
-  routeGetNewComment = (req, res) => {
-    res.status(400);
-    res.json({
-      success: false,
-      ...DOCS.NEW_COMMENT,
-    });
-  },
-  routeGetEditComment = (req, res) => {
-    res.status(400);
-    res.json({
-      success: false,
-      ...DOCS.EDIT_COMMENT,
-    });
-  },
-  routeGetDeleteComment = (req, res) => {
-    res.status(400);
-    res.json({
-      success: false,
-      ...DOCS.DELETE_COMMENT,
-    });
   };

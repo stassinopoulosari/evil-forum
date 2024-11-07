@@ -220,6 +220,7 @@ export const dbUserActive = async (userID) => {
               comment_votes,
               comment_content,
               comment_timestamp,
+              comment_edited_at,
               comment_locked,
               posts.post_id as post_id
             from
@@ -263,6 +264,7 @@ export const dbUserActive = async (userID) => {
             user_displayname,
             comment_id,
             comment_post_title,
+            comment_edited_at,
             comment_replyto,
             comment_root,
             comment_votes,

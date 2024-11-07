@@ -1,6 +1,6 @@
 import { getWithSession, makeRequestWithSession } from "./network.js";
 import { getCurrentSession } from "./session.js";
-import { $commentWidget, $navBar, $postElement } from "./shared-components.js";
+import { $commentWidget, $navBar, $postWidget } from "./shared-components.js";
 import { children, classes, make, make$Page, update } from "./ui.js";
 
 const $page = make$Page("user");
@@ -40,10 +40,10 @@ children(
     let element;
     switch (entityType) {
       case "post":
-        element = $postElement(entity);
+        element = classes($postWidget(entity), ["user-view-post"]);
         break;
       case "comment":
-        element = children(classes(make("div"), ["content"]), [
+        element = children(classes(make("div"), ["user-view-comment"]), [
           children(update(make("a"), { href: `/posts/${entity.post_id}` }), [
             update(make("span"), {
               innerText: "comment made on ",

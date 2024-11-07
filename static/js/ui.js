@@ -88,6 +88,11 @@ export const addEllipsis = ($parent) => {
     $children.forEach(($child) => $el.appendChild($child));
     return $el;
   },
+  replaceContent = ($el, $children) => {
+    $el.innerText = "";
+    children($el, $children);
+    return $el;
+  },
   make$Page = (prefix) => {
     const $page = {};
     const $pageElements = [].filter.call(

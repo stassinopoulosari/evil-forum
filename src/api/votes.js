@@ -37,13 +37,6 @@ export const routePostPostVote = async (req, res) => {
       });
     }
   },
-  routeGetPostVote = (req, res) => {
-    res.status(400);
-    res.json({
-      success: false,
-      ...DOCS.VOTE_POST,
-    });
-  },
   routePostCommentVote = async (req, res) => {
     if (req.evilSession === undefined || req.evilUserID === undefined) {
       return authenticationFailError(res, "vote");
@@ -79,11 +72,4 @@ export const routePostPostVote = async (req, res) => {
         error: err.frontEndMessage ?? err,
       });
     }
-  },
-  routeGetCommentVote = (req, res) => {
-    res.status(400);
-    res.json({
-      success: false,
-      ...DOCS.VOTE_COMMENT,
-    });
   };

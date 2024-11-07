@@ -19,6 +19,7 @@ export const sendEmailNotifications = async () => {
   let notificationsSent = 0;
   try {
     while ((await dbCountQueuedNotifications()) !== 0) {
+      // Do these in batches of 10
       const notificationsToSend = await dbUnqueueNotifications(10);
       for (const notification of notificationsToSend) {
         const notificationSettings = await dbGetNotificationSettings(
@@ -36,8 +37,9 @@ export const sendEmailNotifications = async () => {
           (notificationType === "comment_reply" &&
             !notificationSettings.notification_comment_reply)
         )
-          // Do not send
+          // Do not send if the user has notifications off
           continue;
+        // Send with Mailgun
         await mg.messages.create(MAILGUN.DOMAIN, {
           from: MAILGUN.EMAIL,
           to: [userEmail],
@@ -53,6 +55,7 @@ export const sendEmailNotifications = async () => {
     console.log(
       `Successfully sent ${notificationsSent} notification(s) before failure`,
     );
+    return notificationsSent;
   }
-  console.log(`[Notif] ${notificationsSent}`);
+  return notificationsSent;
 };

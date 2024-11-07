@@ -28,21 +28,26 @@
     <body>
         <nav id="editPost-navBar"></nav>
         <div class="content">
-            <div id="editPost-postSummary"></div>
-            <i>editing as <span id="editPost-username"></span></i>
+            <h1>edit post</h1>
+            <i>editing as <span id="editPost-username">loading<span class="loading-ellipsis"></span></i><br /><br />
+            <i>post preview</i>
+            <div id="editPost-postSummary" class="dummy-post">
+                loading<span class="loading-ellipsis"></span>
+            </div>
             <form id="editPost-editForm">
                 <div
                     class="form-group"
-                    id="newPost-postTextContentContainer"
+                    id="editPost-postTextContentContainer"
                     style="display: block"
                 >
                     <textarea
-                        id="newPost-postTextContent"
+                        id="editPost-postTextContent"
                         rows="3"
-                        placeholder="share your nefarious plans"
+                        placeholder="loading..."
+                        disabled
                     ></textarea>
-                    <input type="submit" />
                 </div>
+                    <input type="submit" />
             </form>
         </div>
     </body>
