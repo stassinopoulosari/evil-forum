@@ -33,6 +33,23 @@ export const dbUserActive = async (userID) => {
       throw POSTGRES_ERROR(err);
     }
   },
+  dbUserActiveByUsername = async (username) => {
+    if (client === undefined) throw NO_CLIENT_ERROR;
+    validateArgument("username", username, [
+      paramArgumentNonNull,
+      paramArgumentString,
+    ]);
+    try {
+      const userQuery = await client.query(
+        "select user_id from users where user_username = $1 and (user_banned = FALSE or user_banned is NULL)",
+        [username],
+      );
+      if (userQuery.rows.length === 1) return true;
+      return false;
+    } catch (err) {
+      throw POSTGRES_ERROR(err);
+    }
+  },
   dbCreateUser = async (username, displayName, googleID, email) => {
     if (client === undefined) throw NO_CLIENT_ERROR;
     validateArgument("username", username, [
@@ -195,7 +212,8 @@ export const dbUserActive = async (userID) => {
           with comments_with_context as (
             select
               posts.post_title as comment_post_title,
-              comment_id,
+              vote_positive,
+              comments.comment_id,
               comments.user_id as user_id,
               comment_replyto,
               comment_root,
@@ -210,10 +228,30 @@ export const dbUserActive = async (userID) => {
                 on comments.post_id = posts.post_id
               join users
                 on comments.user_id = users.user_id
+              left join (select comment_id, vote_positive from comment_votes where user_id = $2) requestor_comment_votes
+                on requestor_comment_votes.comment_id = comments.comment_id
               where users.user_id = $1
+          ),
+          posts_with_context as (
+            select
+              posts.post_id,
+              post_title,
+              post_timestamp,
+              post_text,
+              post_link,
+              post_votes,
+              post_score,
+              post_locked,
+              post_edited_at,
+              vote_positive,
+              posts.user_id as user_id
+            from posts
+            left join (select post_id, vote_positive from post_votes where user_id = $2) requestor_post_votes on
+              requestor_post_votes.post_id = posts.post_id
+            where posts.user_id = $1
           )
           select
-            coalesce(comments_with_context.post_id, posts.post_id) as post_id,
+            coalesce(comments_with_context.post_id, posts_with_context.post_id) as post_id,
             post_title,
             post_timestamp,
             post_text,
@@ -231,16 +269,17 @@ export const dbUserActive = async (userID) => {
             comment_content,
             comment_timestamp,
             comment_locked,
+            coalesce(posts_with_context.vote_positive, comments_with_context.vote_positive) as vote_positive,
             coalesce(post_timestamp, comment_timestamp) as timestamp,
             case
-              when posts.post_id is not null then 'post'
+              when posts_with_context.post_id is not null then 'post'
               when comments_with_context.comment_id is not null then 'comment'
             else
               NULL
             end as entity_type,
             case
-              when posts.post_id is not null and posts.user_id = $2 then TRUE
-              when posts.post_id is null then NULL
+              when posts_with_context.post_id is not null and posts_with_context.user_id = $2 then TRUE
+              when posts_with_context.post_id is null then NULL
               else
                 false
             end as post_mine,
@@ -251,12 +290,12 @@ export const dbUserActive = async (userID) => {
                 false
             end as comment_mine
           from
-            posts
+          posts_with_context
             full outer join
               comments_with_context on FALSE
             left join
               users on
-                users.user_id = coalesce(posts.user_id, comments_with_context.user_id)
+                users.user_id = coalesce(posts_with_context.user_id, comments_with_context.user_id)
             where
               users.user_id = $1
             order by
