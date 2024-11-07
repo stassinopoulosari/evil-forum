@@ -1,3 +1,4 @@
+import { DOMAIN, PROTOCOL } from "../config.js";
 import {
   client,
   paramArgumentNonNull,
@@ -250,12 +251,22 @@ export const dbCreatePost = async (userID, post) => {
       childCommentUserID = userID,
       childCommentUser = await dbGetUser(childCommentUserID),
       childCommentUsername = childCommentUser.user_username,
-      childCommentDisplayName = childCommentUser.user_diplayname;
+      childCommentDisplayName = childCommentUser.user_displayname;
+    if (postUserID === childCommentUserID) return;
     dbQueueNotification(postUserID, "comment_reply", {
-      header: `A reply has been made to your post ${san(post.post_title)}`,
+      header: `A reply has been made to your post "${post.post_title}"`,
       body: `User ${san(childCommentDisplayName)} <${san(childCommentUsername)}> has replied:
-\t>${san(comment.content).split(/\r|\n/g).join("\t\n>")}
+
+\t> ${san(comment.content).split(/\r|\n/g).join("\t\n> ")}
 
 See more at ${PROTOCOL}://${DOMAIN}/posts/${postID}`,
+      bodyHTML: `
+<h1>A reply has been made to your post "${san(post.post_title)}"</h1>
+<p>User ${san(childCommentDisplayName)} <${san(childCommentUsername)}> has replied:</p>
+<p style='font-family: monospace; margin-left: 1em;'>
+&gt;${san(comment.content).split(/\r|\n/g).join("<br/>&gt; ")}
+</p>
+<p><i>See more at <a href="${PROTOCOL}://${DOMAIN}/posts/${postID}">/posts/${postID}</a></i></p>
+`,
     });
   };

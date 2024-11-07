@@ -85,7 +85,7 @@ export const dbSession = session({
     );
     create table "user_sessions"(
       session_id uuid primary key,
-      session_user_id uuid references users(user_id) not null,
+      user_id uuid references users(user_id) not null,
       session_expires timestamptz not null,
       session_opened timestamptz not null,
       session_ip text not null
@@ -111,7 +111,6 @@ export const dbSession = session({
     with (oids = FALSE);
     alter table "express_sessions" add constraint "express_sessions_pkey" primary key ("sid") not deferrable initially immediate;
     create index "IDX_express_sessions_expire" on "express_sessions" ("expire");
-    create table "user_notifications"
     `);
     } catch (err) {
       throw POSTGRES_ERROR(err);

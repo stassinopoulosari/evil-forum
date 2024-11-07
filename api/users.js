@@ -1,5 +1,9 @@
 import { authenticationFailError } from "../auth.js";
-import { dbGetUser, dbGetUserContent } from "../db/users.js";
+import {
+  dbGetUser,
+  dbGetUserByUsername,
+  dbGetUserContent,
+} from "../db/users.js";
 
 export const routeGetUserMe = async (req, res) => {
     if (req.evilSession === undefined || req.evilUserID === undefined) {
@@ -23,6 +27,7 @@ export const routeGetUserMe = async (req, res) => {
     try {
       return res.json({
         status: true,
+        user: await dbGetUserByUsername(username, requestorUserID),
         content: await dbGetUserContent(username, requestorUserID, passedPage),
       });
     } catch (err) {

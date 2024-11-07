@@ -16,7 +16,21 @@ const currentSession = await getCurrentSession(),
       update(make("h1"), { innerText: "This user was not found." }),
     ]);
 
-const userInformation = (
-  await getWithSession(currentSession, `/api/users/${userID}`)
-).json;
-console.log(userInformation);
+let userResponse;
+try {
+  userResponse = (await getWithSession(currentSession, `/api/users/${userID}`))
+    .json;
+} catch (err) {
+  $page.userDisplayName.innerText = "User not found.";
+  throw "User not found";
+}
+
+const userInformation = userResponse.user,
+  userContent = userResponse.content;
+
+children(
+  $page.userContent,
+  userContent.map((content) => {}),
+);
+
+console.log(userResponse);

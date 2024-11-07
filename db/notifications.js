@@ -123,11 +123,13 @@ export const dbGetNotificationSettings = async (userID) => {
   dbCountQueuedNotifications = async () => {
     if (client === undefined) throw NO_CLIENT_ERROR;
     try {
-      return (
-        await client.query(`
+      return parseInt(
+        (
+          await client.query(`
         select count(*) as notification_count from queued_notifications limit 1;
       `)
-      ).rows[0].notification_count;
+        ).rows[0].notification_count,
+      );
     } catch (err) {
       throw POSTGRES_ERROR(err);
     }
