@@ -183,7 +183,9 @@ export const addEllipsis = ($parent) => {
     } else {
       return `${fullDate} at ${time}`;
     }
-  };
+  },
+  seriousRenderTime = (timestamp) =>
+    new Date(Date.parse(timestamp)).toLocaleString();
 
 // Progress ellipsis elements
 const progressEllipsis = () => {

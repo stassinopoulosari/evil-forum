@@ -14,8 +14,9 @@ export const dbCalculateScoreForPost = async (postID) => {
       paramArgumentNumber,
     ]);
     try {
-      const postScoresQuery = await client.query(
-        `
+      const postScoresQuery = await client.query({
+        name: "calculate_post_score_query",
+        text: `
       with zero_score_post as (
         select
           post_id
@@ -51,8 +52,8 @@ export const dbCalculateScoreForPost = async (postID) => {
       )
       update posts set post_score = post_score.new_post_score from post_score where posts.post_id = post_score.post_id;
       `,
-        [postID],
-      );
+        values: [postID],
+      });
       return postScoresQuery;
     } catch (err) {
       throw POSTGRES_ERROR(err);
@@ -61,8 +62,9 @@ export const dbCalculateScoreForPost = async (postID) => {
   dbCalculatePostScores = async () => {
     if (client === undefined) throw NO_CLIENT_ERROR;
     try {
-      const postScoresQuery = await client.query(
-        `
+      const postScoresQuery = await client.query({
+        name: "calculate_post_scores_query",
+        text: `
       with zero_score_posts as (
         select post_id from posts where
         (post_timestamp <= now() - interval '${SCORE.MAX_HOURS_ON_HOMEPAGE} hours')
@@ -89,7 +91,7 @@ export const dbCalculateScoreForPost = async (postID) => {
       )
       update posts set post_score = 0 from zero_score_posts where posts.post_id = zero_score_posts.post_id
       `,
-      );
+      });
       return postScoresQuery;
     } catch (err) {
       throw POSTGRES_ERROR(err);

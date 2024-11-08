@@ -13,7 +13,9 @@ import {
   classes,
   make,
   renderTime,
+  replaceContent,
   separator,
+  seriousRenderTime,
   style,
   update,
 } from "./ui.js";
@@ -59,6 +61,9 @@ export const $commentWidget = (
     const $editButton = update(make(comment.comment_edited_at ? "span" : "a"), {
         innerText: "edit",
         href: "#",
+        title: comment.comment_edited_at
+          ? "comments can only be edited once"
+          : "edit comment",
         onclick: async (e) => {
           e.preventDefault();
           if (!isEditing) {
@@ -124,7 +129,7 @@ export const $commentWidget = (
               innerText: `${renderTime(comment.comment_timestamp)}${comment.comment_edited_at ? "*" : ""}`,
               title: comment.comment_edited_at
                 ? `edited ${renderTime(comment.comment_edited_at)}`
-                : "not edited",
+                : seriousRenderTime(comment.comment_timestamp),
             }),
             ...(!hideReply
               ? [
@@ -291,7 +296,7 @@ export const $postWidget = (post, dummyVote) =>
           innerText: `${renderTime(post.post_timestamp)}${post.post_edited_at ? "*" : ""}`,
           title: post.post_edited_at
             ? `edited ${renderTime(post.post_edited_at)}`
-            : "not edited",
+            : seriousRenderTime(post.post_timestamp),
         }),
         update(make("span"), {
           innerText: " • ",
@@ -313,6 +318,9 @@ export const $postWidget = (post, dummyVote) =>
                       innerText: "edit",
                       href: `/posts/${post.post_id}/edit`,
                       disabled: post.post_edited_at !== null,
+                      title: post.post_edited_at
+                        ? "posts may only be edited once"
+                        : "edit post",
                     }),
                   ]
                 : []),
@@ -341,30 +349,58 @@ export const $postWidget = (post, dummyVote) =>
   ]);
 
 export const $navBar = ($el) => {
-  const $link = children(make("a"), [
-    update(make("span"), { innerText: "Loading" }),
-    addEllipsis(make("span")),
-  ]);
+  const $authLinks = {
+    userLink: children(make("a"), [
+      update(make("span"), { innerText: "Loading" }),
+      addEllipsis(make("span")),
+    ]),
+    newPostLink: children(make("a"), [
+      update(make("span"), { innerText: "Loading" }),
+      addEllipsis(make("span")),
+    ]),
+    logoutLink: children(make("a"), [
+      update(make("span"), { innerText: "Loading" }),
+      addEllipsis(make("span")),
+    ]),
+  };
   children($el, [
     children(update(make("a"), { href: "/" }), [
       update(make("img"), { src: "/assets/evil-forum.svg", alt: "evil forum" }),
     ]),
     classes(separator(), ["spacer"]),
-    $link,
-    update(make("a"), { innerText: "+ new post", href: "/posts/new" }),
+    $authLinks.userLink,
+    $authLinks.newPostLink,
+    $authLinks.logoutLink,
   ]);
   getCurrentSession().then((currentSession) => {
-    if (currentSession !== undefined)
+    if (currentSession !== undefined) {
       getMe(currentSession).then((meContent) =>
-        update($link, {
+        update($authLinks.userLink, {
           innerText: `signed in as ${meContent.user_displayname}`,
           href: `/users/${meContent.user_username}`,
         }),
       );
-    return update($link, {
+      update(
+        replaceContent($authLinks.newPostLink, [
+          update(make("img"), { src: "/assets/icon/plus.svg" }),
+        ]),
+        { href: "/posts/new", title: "Make a new post" },
+      );
+      update(
+        replaceContent($authLinks.logoutLink, [
+          update(make("img"), { src: "/assets/icon/logout.svg" }),
+        ]),
+        { href: "/auth/logout", title: "Sign out" },
+      );
+      return;
+    }
+    update($authLinks.userLink, {
       innerText: "sign in with Google",
       href: `/auth/google`,
     });
+    $authLinks.logoutLink.remove();
+    $authLinks.newPostLink.remove();
+    return;
   });
 };
 

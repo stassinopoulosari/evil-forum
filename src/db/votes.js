@@ -34,10 +34,11 @@ export const dbRegisterPostVote = async (userID, postID, voteValue) => {
     const voteID = `${userID}.${postID}`;
     try {
       let previousUserVote, totalQuery;
-      const previousVoteQuery = await client.query(
-        "select vote_positive from post_votes where vote_id=$1",
-        [voteID],
-      );
+      const previousVoteQuery = await client.query({
+        name: "post_previous_vote_query",
+        text: "select vote_positive from post_votes where vote_id=$1",
+        values: [voteID],
+      });
       if (previousVoteQuery.rows.length === 0) {
         previousUserVote = 0;
       } else if (previousVoteQuery.rows[0].vote_positive) {
@@ -47,24 +48,29 @@ export const dbRegisterPostVote = async (userID, postID, voteValue) => {
       }
       const voteDifference = voteValue - previousUserVote;
       if (voteValue === 0) {
-        await client.query("delete from post_votes where vote_id = $1", [
-          voteID,
-        ]);
+        await client.query({
+          name: "post_remove_vote_query",
+          text: "delete from post_votes where vote_id = $1",
+          values: [voteID],
+        });
       } else if (voteValue === 1) {
-        await client.query(
-          "insert into post_votes(vote_id, user_id, post_id, vote_positive) values($1, $2, $3, TRUE) on conflict (vote_id) do update set vote_positive = TRUE",
-          [voteID, userID, postID],
-        );
+        await client.query({
+          name: "post_upvote_query",
+          text: "insert into post_votes(vote_id, user_id, post_id, vote_positive) values($1, $2, $3, TRUE) on conflict (vote_id) do update set vote_positive = TRUE",
+          values: [voteID, userID, postID],
+        });
       } else {
-        await client.query(
-          "insert into post_votes(vote_id, user_id, post_id, vote_positive) values($1, $2, $3, FALSE) on conflict (vote_id) do update set vote_positive = FALSE",
-          [voteID, userID, postID],
-        );
+        await client.query({
+          name: "post_downvote_query",
+          text: "insert into post_votes(vote_id, user_id, post_id, vote_positive) values($1, $2, $3, FALSE) on conflict (vote_id) do update set vote_positive = FALSE",
+          values: [voteID, userID, postID],
+        });
       }
-      totalQuery = await client.query(
-        "update posts set post_votes = post_votes + $1 where post_id = $2 returning post_votes",
-        [voteDifference, postID],
-      );
+      totalQuery = await client.query({
+        name: "post_vote_total_update_query",
+        text: "update posts set post_votes = post_votes + $1 where post_id = $2 returning post_votes",
+        values: [voteDifference, postID],
+      });
       return totalQuery.rows[0].post_votes;
     } catch (err) {
       throw POSTGRES_ERROR(err);
@@ -88,10 +94,11 @@ export const dbRegisterPostVote = async (userID, postID, voteValue) => {
     const voteID = `${userID}.${commentID}`;
     try {
       let previousUserVote, voteQuery, totalQuery;
-      const previousVoteQuery = await client.query(
-        "select vote_positive from comment_votes where vote_id=$1",
-        [voteID],
-      );
+      const previousVoteQuery = await client.query({
+        name: "comment_previous_vote_query",
+        text: "select vote_positive from comment_votes where vote_id=$1",
+        values: [voteID],
+      });
       if (previousVoteQuery.rows.length === 0) {
         previousUserVote = 0;
       } else if (previousVoteQuery.rows[0].vote_positive) {
@@ -101,25 +108,29 @@ export const dbRegisterPostVote = async (userID, postID, voteValue) => {
       }
       const voteDifference = voteValue - previousUserVote;
       if (voteValue === 0) {
-        voteQuery = await client.query(
-          "delete from comment_votes where vote_id = $1",
-          [voteID],
-        );
+        voteQuery = await client.query({
+          name: "comment_remove_vote_query",
+          text: "delete from comment_votes where vote_id = $1",
+          values: [voteID],
+        });
       } else if (voteValue === 1) {
-        voteQuery = await client.query(
-          "insert into comment_votes(vote_id, user_id, comment_id, vote_positive) values($1, $2, $3, TRUE) on conflict (vote_id) do update set vote_positive = TRUE",
-          [voteID, userID, commentID],
-        );
+        voteQuery = await client.query({
+          name: "comment_downvote_query",
+          text: "insert into comment_votes(vote_id, user_id, comment_id, vote_positive) values($1, $2, $3, TRUE) on conflict (vote_id) do update set vote_positive = TRUE",
+          values: [voteID, userID, commentID],
+        });
       } else {
-        voteQuery = await client.query(
-          "insert into comment_votes(vote_id, user_id, comment_id, vote_positive) values($1, $2, $3, FALSE) on conflict (vote_id) do update set vote_positive = FALSE",
-          [voteID, userID, commentID],
-        );
+        voteQuery = await client.query({
+          name: "comment_upvote_query",
+          text: "insert into comment_votes(vote_id, user_id, comment_id, vote_positive) values($1, $2, $3, FALSE) on conflict (vote_id) do update set vote_positive = FALSE",
+          values: [voteID, userID, commentID],
+        });
       }
-      totalQuery = await client.query(
-        "update comments set comment_votes = comment_votes + $1 where comment_id = $2 returning comment_votes",
-        [voteDifference, commentID],
-      );
+      totalQuery = await client.query({
+        name: "comment_vote_total_update_query",
+        text: "update comments set comment_votes = comment_votes + $1 where comment_id = $2 returning comment_votes",
+        values: [voteDifference, commentID],
+      });
       return totalQuery.rows[0].comment_votes;
     } catch (err) {
       throw POSTGRES_ERROR(err);
@@ -128,14 +139,15 @@ export const dbRegisterPostVote = async (userID, postID, voteValue) => {
   dbCalculateVotesForPost = async (postID) => {
     if (client === undefined) throw NO_CLIENT_ERROR;
     try {
-      const voteTotalQuery = await client.query(
-        `with selected_votes as (select count(*) from post_votes where post_id = $1)
+      const voteTotalQuery = await client.query({
+        name: "votes_for_post_query",
+        text: `with selected_votes as (select count(*) from post_votes where post_id = $1)
       select
         (select count(*) from selected_votes where vote_positive = TRUE)
         - (select count(*) from selected_votes vote_positive = FALSE)
        as total_votes`,
-        [postID],
-      );
+        values: [postID],
+      });
       return voteTotalQuery;
     } catch (err) {
       throw POSTGRES_ERROR(err);
@@ -144,8 +156,9 @@ export const dbRegisterPostVote = async (userID, postID, voteValue) => {
   dbCalculateVotesForPostsOnInterval = async (beginDate, endDate) => {
     if (client === undefined) throw NO_CLIENT_ERROR;
     try {
-      const voteTotalQuery = await client.query(
-        `
+      const voteTotalQuery = await client.query({
+        name: "votes_for_posts_on_interval_query",
+        text: `
       /* Select posts on the given time interval */
       with selected_post_ids as (select post_id as selected_id from posts where post_timestamp >= $1 and post_timestamp <= $2),
       /* Select the votes from said posts */
@@ -181,8 +194,8 @@ export const dbRegisterPostVote = async (userID, postID, voteValue) => {
       )
       update posts set post_votes = new_vote_totals.votes from new_vote_totals where posts.post_id = new_vote_totals.post_id;
       `,
-        [beginDate, endDate],
-      );
+        values: [beginDate, endDate],
+      });
       return voteTotalQuery;
     } catch (err) {
       throw POSTGRES_ERROR(err);
@@ -191,8 +204,9 @@ export const dbRegisterPostVote = async (userID, postID, voteValue) => {
   dbCalculateVotesForCommentsOnInterval = async (beginDate, endDate) => {
     if (client === undefined) throw NO_CLIENT_ERROR;
     try {
-      const voteTotalQuery = await client.query(
-        `
+      const voteTotalQuery = await client.query({
+        name: "votes_for_comments_on_interval_query",
+        text: `
       /* Select comments on the given time interval */
       with selected_comment_ids as (select comment_id as selected_id from comments where comment_timestamp >= $1 and comment_timestamp <= $2),
       /* Select the votes from said comments */
@@ -228,8 +242,8 @@ export const dbRegisterPostVote = async (userID, postID, voteValue) => {
       )
       update comments set comment_votes = new_vote_totals.votes from new_vote_totals where comments.comment_id = new_vote_totals.comment_id;
       `,
-        [beginDate, endDate],
-      );
+        values: [beginDate, endDate],
+      });
       return voteTotalQuery;
     } catch (err) {
       throw POSTGRES_ERROR(err);

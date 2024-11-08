@@ -207,8 +207,9 @@ export const dbUserActive = async (userID) => {
       throw PERMISSION_USER_BANNED_ERROR(userID);
     try {
       return (
-        await client.query(
-          `
+        await client.query({
+          name: "user_content_query",
+          text: `
           with comments_with_context as (
             select
               posts.post_title as comment_post_title,
@@ -227,11 +228,9 @@ export const dbUserActive = async (userID) => {
               comments
               join posts
                 on comments.post_id = posts.post_id
-              join users
-                on comments.user_id = users.user_id
               left join (select comment_id, vote_positive from comment_votes where user_id = $2) requestor_comment_votes
                 on requestor_comment_votes.comment_id = comments.comment_id
-              where users.user_id = $1
+              where comments.user_id = $1
           ),
           posts_with_context as (
             select
@@ -262,6 +261,7 @@ export const dbUserActive = async (userID) => {
             post_locked,
             post_edited_at,
             user_displayname,
+            user_username,
             comment_id,
             comment_post_title,
             comment_edited_at,
@@ -304,8 +304,8 @@ export const dbUserActive = async (userID) => {
               timestamp desc
             limit $3
             offset $4;`,
-          [userID, requestorUserID, HOMEPAGE_ITEMS_PER_PAGE, offset],
-        )
+          values: [userID, requestorUserID, HOMEPAGE_ITEMS_PER_PAGE, offset],
+        })
       ).rows;
     } catch (err) {
       throw POSTGRES_ERROR(err);

@@ -14,9 +14,10 @@ export const dbGetHomepage = async (page, userID) => {
   const offset = HOMEPAGE_ITEMS_PER_PAGE * Math.floor(page ?? 0);
   const userIDParam = userID === undefined ? [] : [userID];
   try {
-    const homepageQuery = await client.query(
-      `
-        with my_posts as (select post_id, TRUE as post_mine from posts where post_score != 0 and user_id = $3)
+    const homepageQuery = await client.query({
+      name: "homepage_query",
+      text: `
+        with my_posts as (select post_id, TRUE as post_mine from posts where post_score != 0 and user_id = $1)
         select
           posts.post_id as post_id,
           post_title,
@@ -35,11 +36,11 @@ export const dbGetHomepage = async (page, userID) => {
         from
           posts
           left join users on posts.user_id = users.user_id
-          left join post_votes on posts.post_id = post_votes.post_id and post_votes.user_id = $3
+          left join post_votes on posts.post_id = post_votes.post_id and post_votes.user_id = $1
           left join my_posts on posts.post_id = my_posts.post_id
-        where post_score != 0 order by post_score desc, post_timestamp, post_id desc limit $1 offset $2`,
-      [HOMEPAGE_ITEMS_PER_PAGE, offset, userID],
-    );
+        where post_score != 0 order by post_score desc, post_timestamp, post_id desc limit $2 offset $3`,
+      values: [userID, HOMEPAGE_ITEMS_PER_PAGE, offset],
+    });
     return homepageQuery.rows;
   } catch (err) {
     throw POSTGRES_ERROR(err);

@@ -38,7 +38,21 @@ if (isNaN(postID) || postID < 0) {
 }
 
 const $newCommentWidget = (postID, replyTo, $replyButton) => {
-  const $commentContent = update(make("textarea"), { required: true }),
+  const $commentContent = update(
+      currentSession === undefined
+        ? classes(make("div"), ["textarea-placeholder"])
+        : make("textarea"),
+      {
+        required: true,
+        value:
+          currentSession === undefined ? "Sign in to leave a comment!" : "",
+        innerHTML:
+          currentSession === undefined
+            ? "<span><a href='/auth/google'>Sign in</a>&nbsp;to leave a comment!</span>"
+            : "",
+        disabled: currentSession === undefined,
+      },
+    ),
     $newCommentContainer = classes(make("form"), ["new-comment"]);
   return children(
     update($newCommentContainer, {
@@ -62,7 +76,11 @@ const $newCommentWidget = (postID, replyTo, $replyButton) => {
     }),
     [
       $commentContent,
-      update(make("input"), { type: "submit", value: "post" }),
+      update(make("input"), {
+        type: "submit",
+        value: "post",
+        disabled: currentSession === undefined,
+      }),
       ...(replyTo !== undefined
         ? [
             update(make("input"), {

@@ -7,6 +7,13 @@ const $page = make$Page("homepage");
 
 const currentSession = await getCurrentSession();
 
+const handleMessage = () => {
+  const locationURL = new URL(location);
+  if (locationURL.searchParams.size === 0) return;
+  history.pushState({}, "", ".");
+  if (locationURL.searchParams.get("message") === null) return;
+};
+
 const $noPostPlaceholder = children(
   classes(make("div"), ["no-post-placeholder"]),
   [
@@ -52,3 +59,4 @@ getWithSession(currentSession, "/api/homepage")
   });
 
 $navBar($page.navBar);
+handleMessage();

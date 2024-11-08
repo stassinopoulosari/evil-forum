@@ -13,8 +13,10 @@ const currentSession = await getCurrentSession(),
       .split("/")
       .filter((path) => path !== "")
       .slice(-2)[0],
-  ),
-  [postInformation, userInformation] = await Promise.all([
+  );
+if (currentSession === undefined)
+  location.assign("/?message=editPostError&reason=not-logged-in");
+const [postInformation, userInformation] = await Promise.all([
     getWithSession(currentSession, `/api/posts/${postID}`),
     getMe(currentSession),
   ]),

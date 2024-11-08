@@ -4,21 +4,19 @@ import { make$Page } from "./ui.js";
 
 const $page = make$Page("authGoogle");
 try {
-  const createSessionResponse = await get(
-    `/auth/createSession${location.search}`,
-  );
+  const search = location.search;
   history.pushState({}, undefined, "/auth/google");
+  const createSessionResponse = await get(`/auth/create-session${search}`);
   if (
     createSessionResponse.status !== 200 ||
     createSessionResponse.json === undefined
   ) {
-    location.assign("/?loginError");
+    throw "Could not sign in";
   }
-
   saveSessionToLocalStorage(createSessionResponse.json);
-  location.assign("/");
+  location.assign("/?message=loggedIn");
 } catch (err) {
   $page.error.innerText =
     "Sorry! Something went wrong authenticating you. Redirecting to the home page.";
-  setTimeout(() => location.assign("/"), 1000);
+  setTimeout(() => location.assign("/?message=loginError"), 1000);
 }

@@ -65,8 +65,9 @@ export const dbGetNotificationSettings = async (userID) => {
     try {
       return (
         (
-          await client.query(
-            `
+          await client.query({
+            name: "update_notification_settings_query",
+            text: `
             insert
             into
               user_notification_settings(user_id, notification_post_reply, notification_comment_reply)
@@ -77,12 +78,12 @@ export const dbGetNotificationSettings = async (userID) => {
                 set
                 notification_post_reply = $2,
                 notification_comment_reply = $3`,
-            [
+            values: [
               userID,
               newSettings.notification_comment_reply,
               newSettings.notification_post_reply,
             ],
-          )
+          })
         ).rowCount === 1
       );
     } catch (err) {
@@ -107,13 +108,14 @@ export const dbGetNotificationSettings = async (userID) => {
     try {
       return (
         (
-          await client.query(
-            `
+          await client.query({
+            name: "queue_notification_query",
+            text: `
         insert into queued_notifications(user_id, notification_type, notification_information, notification_queued)
         values ($1, $2, $3, NOW())
       `,
-            [userID, notificationType, notification],
-          )
+            values: [userID, notificationType, notification],
+          })
         ).rowCount === 1
       );
     } catch (err) {
@@ -138,8 +140,9 @@ export const dbGetNotificationSettings = async (userID) => {
     if (client === undefined) throw NO_CLIENT_ERROR;
     try {
       return (
-        await client.query(
-          `
+        await client.query({
+          name: "unqueue_notifications_query",
+          text: `
           delete from queued_notifications
           where
             notification_id in (
@@ -149,8 +152,8 @@ export const dbGetNotificationSettings = async (userID) => {
             )
           returning *
         `,
-          [amount],
-        )
+          values: [amount],
+        })
       ).rows;
     } catch (err) {
       throw POSTGRES_ERROR(err);

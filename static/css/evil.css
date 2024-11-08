@@ -58,7 +58,8 @@ input {
 
 input[type="text"],
 input[type="url"],
-textarea {
+textarea,
+.textarea-placeholder {
     padding: 0.5rem;
     border: 0.1px solid #000;
     border-radius: 0.5rem;
@@ -66,9 +67,16 @@ textarea {
     min-width: 40vw;
 }
 
-textarea {
+textarea,
+div.textarea-placeholder {
     min-width: 50vw;
     min-height: 10vh;
+}
+
+div.textarea-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 input[type="submit"] {

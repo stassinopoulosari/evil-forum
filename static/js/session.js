@@ -28,7 +28,7 @@ export const loadSessionFromLocalStorage = () => {
     localStorage.setItem(sessionKey, JSON.stringify(sessionObject));
   },
   deleteSessionFromLocalStorage = () => {
-    localStorage.setItem(sessionKey, undefined);
+    localStorage.removeItem(sessionKey);
   },
   generateHeadersFromSession = (sessionObject) => ({
     "x-evil-forum-session-id": sessionObject.session.sessionID,

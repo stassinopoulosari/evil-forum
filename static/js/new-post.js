@@ -10,7 +10,7 @@ const currentSession = await getCurrentSession();
 
 if (currentSession === undefined) {
   // TODO - Not signed in error
-  location.assign("/");
+  location.assign("/?message=newPostError&reason=notSignedIn");
 }
 
 const userInformation = await getMe(currentSession);

@@ -1,6 +1,10 @@
 import axios from "axios";
 import FormData from "form-data";
-import { dbCheckSession, dbCreateSession } from "./db/sessions.js";
+import {
+  dbCheckSession,
+  dbCreateSession,
+  dbDeleteSession,
+} from "./db/sessions.js";
 import { dbCreateUser, dbGetUserByGoogleID } from "./db/users.js";
 import Router from "express";
 import {
@@ -89,6 +93,7 @@ export const passSession = async (req, res, next) => {
 // OAuth
 export const authenticationRouter = Router();
 authenticationRouter
+  .use(passSession)
   .get("/google", async (req, res) => {
     if (req.query.code == undefined) {
       const state = crypto.randomUUID(),
@@ -112,7 +117,7 @@ authenticationRouter
       res.sendFile("views/auth-google.html", { root: "./static" });
     }
   })
-  .get("/createSession", async (req, res) => {
+  .get("/create-session", async (req, res) => {
     const state = req.session.oauthState,
       query = req.query;
     console.log(state, query);
@@ -140,7 +145,7 @@ authenticationRouter
           googleID,
           googleUserInfo.email,
         );
-        console.log(newUserID);
+        console.log(`[auth] Created new user with ID ${newUserID}`);
         if (newUserID === undefined) {
           res.status(500);
           return res.json({
@@ -166,21 +171,32 @@ authenticationRouter
 
 // Allow for session refreshes
 // This will result in a 403 for an invalid session, 400 for null session, or 200 for valid
+authenticationRouter.get("/session", (req, res) => {
+  if (req.evilSession !== undefined && req.evilUserID !== undefined) {
+    res.json({
+      sessionExpires: req.evilSession.session_expires,
+      userID: req.evilUserID,
+    });
+  } else {
+    res.status(400);
+    res.json({
+      error: "Session or user ID is undefined",
+    });
+  }
+});
+
+// Allow for logging out
 authenticationRouter
-  .use("/session", passSession)
-  .get("/session", (req, res) => {
-    if (req.evilSession !== undefined && req.evilUserID !== undefined) {
-      res.json({
-        sessionExpires: req.evilSession.session_expires,
-        userID: req.evilUserID,
-      });
-    } else {
-      res.status(400);
-      res.json({
-        error: "Session or user ID is undefined",
-      });
+  .get("/destroy-session", async (req, res) => {
+    if (req.evilSession !== undefined) {
+      await dbDeleteSession(req.evilSession.session_id);
+      return res.json({ status: true });
     }
-  });
+    return authenticationFailError(res, "invalidate session");
+  })
+  .get("/logout", async (req, res) =>
+    res.sendFile("views/auth-logout.html", { root: "./static" }),
+  );
 
 export const authenticationFailError = (res, action) => {
   res.status(403);

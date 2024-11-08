@@ -55,22 +55,26 @@ const everyHour = new Task("everyHour", async () => {
 
 const everyDay = new Task("everyDay", async () => {
     // Recalculate votes for all posts and comments
-    console.log("MARK - 1 day. Recalculating all post votes.");
-    const beginningOfTime = new Date();
-    beginningOfTime.setTime(0);
-    console.log(
-      "[post votes (all time)]"(
-        await dbCalculateVotesForPostsOnInterval(beginningOfTime, new Date()),
-      ).rowCount,
-    );
-    console.log(
-      "[comment votes(all time)]"(
-        await dbCalculateVotesForCommentsOnInterval(
-          beginningOfTime,
-          new Date(),
-        ),
-      ).rowCount,
-    );
+    try {
+      console.log("MARK - 1 day. Recalculating all post votes.");
+      const beginningOfTime = new Date();
+      beginningOfTime.setTime(0);
+      console.log(
+        "[post votes (all time)]"(
+          await dbCalculateVotesForPostsOnInterval(beginningOfTime, new Date()),
+        ).rowCount,
+      );
+      console.log(
+        "[comment votes(all time)]"(
+          await dbCalculateVotesForCommentsOnInterval(
+            beginningOfTime,
+            new Date(),
+          ),
+        ).rowCount,
+      );
+    } catch (err) {
+      console.error(err);
+    }
   }),
   everyDayJob = new SimpleIntervalJob({ days: 1 }, everyDay);
 
