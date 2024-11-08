@@ -37,7 +37,7 @@ export const loadSessionFromLocalStorage = () => {
   refreshSession = async () => {
     try {
       const localSession = getCurrentSession(),
-        sessionResponse = await getWithSession(localSession, "./auth/session");
+        sessionResponse = await getWithSession(localSession, "/auth/session");
       localSession.session.expirationDate = sessionResponse.json.sessionExpires;
       saveSessionToLocalStorage(localSession);
       return true;

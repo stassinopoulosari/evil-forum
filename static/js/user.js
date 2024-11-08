@@ -1,4 +1,4 @@
-import { getWithSession, makeRequestWithSession } from "./network.js";
+import { getUser } from "./api.js";
 import { getCurrentSession } from "./session.js";
 import { $commentWidget, $navBar, $postWidget } from "./shared-components.js";
 import { children, classes, make, make$Page, update } from "./ui.js";
@@ -18,8 +18,7 @@ const currentSession = await getCurrentSession(),
 
 let userResponse;
 try {
-  userResponse = (await getWithSession(currentSession, `/api/users/${userID}`))
-    .json;
+  userResponse = (await getUser(currentSession, userID)).json;
 } catch (err) {
   renderUserNotFound;
   throw "User not found";

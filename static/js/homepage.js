@@ -65,6 +65,14 @@ const handleMessage = () => {
       message = "cannot edit post a second time";
       disposition = "failure";
       break;
+    case "failedToEdit":
+      message = "unable to edit post";
+      disposition = "failure";
+      break;
+    case "failedToPost":
+      message = "failed to make a new post";
+      disposition = "failure";
+      break;
     default:
       message = `something is ${getSynonym()} here`;
       disposition = "failure";

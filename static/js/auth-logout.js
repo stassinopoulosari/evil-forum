@@ -1,16 +1,12 @@
-import { get, getWithSession } from "./network.js";
-import {
-  deleteSessionFromLocalStorage,
-  getCurrentSession,
-  saveSessionToLocalStorage,
-} from "./session.js";
+import { signOut } from "./api.js";
+import { deleteSessionFromLocalStorage, getCurrentSession } from "./session.js";
 import { make$Page } from "./ui.js";
 
 const $page = make$Page("authLogout");
 try {
   const currentSession = await getCurrentSession();
   if (currentSession === undefined) throw "Not signed in";
-  await getWithSession(currentSession, "/auth/destroy-session");
+  await signOut(currentSession);
   deleteSessionFromLocalStorage();
   location.assign("/?message=loggedOut");
 } catch (err) {

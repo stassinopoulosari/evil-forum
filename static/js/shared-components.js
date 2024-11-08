@@ -145,7 +145,6 @@ export const $commentWidget = (
                 $vote.querySelectorAll("button"),
                 ($button) => ($button.disabled = true),
               );
-              // TODO show comment deleted visually
             })();
           return false;
         },
@@ -246,7 +245,8 @@ export const $commentWidget = (
         try {
           onVote(currentVoteValue);
         } catch (error) {
-          // TODO: Failed to vote error
+          $upButton.disabled = $downButton.disabled = true;
+          $voteCounter.innerText = "💀";
           console.error(error);
         }
       };

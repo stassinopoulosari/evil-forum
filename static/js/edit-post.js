@@ -1,5 +1,4 @@
-import { editPost, getMe } from "./api.js";
-import { getWithSession } from "./network.js";
+import { editPost, getMe, getPost } from "./api.js";
 import { getCurrentSession } from "./session.js";
 import { $navBar, $postWidget } from "./shared-components.js";
 import { make$Page, replaceContent } from "./ui.js";
@@ -16,7 +15,7 @@ const currentSession = await getCurrentSession(),
   );
 if (currentSession === undefined) location.assign("/?message=editLoggedOut");
 const [postInformation, userInformation] = await Promise.all([
-    getWithSession(currentSession, `/api/posts/${postID}`),
+    getPost(currentSession, postID),
     getMe(currentSession),
   ]),
   post = postInformation.json.post;
@@ -74,8 +73,8 @@ $page.editForm.onsubmit = async (e) => {
     await editPost(currentSession, postID, $page.postTextContent.value);
     location.assign(`/posts/${postID}`);
   } catch (err) {
+    location.assign("/?message=failedToEdit");
     console.error(err);
-    //TODO Handle error
   }
   return false;
 };

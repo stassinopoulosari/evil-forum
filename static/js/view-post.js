@@ -1,4 +1,4 @@
-import { createComment, deleteComment, voteOnComment } from "./api.js";
+import { createComment, getCommentsForPost, getPost } from "./api.js";
 import { getWithSession } from "./network.js";
 import { getCurrentSession } from "./session.js";
 import {
@@ -109,11 +109,8 @@ const $newCommentWidget = (postID, replyTo, $replyButton) => {
 
 (async () => {
   try {
-    const postPromise = getWithSession(currentSession, `/api/posts/${postID}`),
-      commentsPromise = getWithSession(
-        currentSession,
-        `/api/posts/${postID}/comments`,
-      );
+    const postPromise = getPost(currentSession, postID),
+      commentsPromise = getCommentsForPost(currentSession, postID);
     const [postInfo, commentsResponse] = await Promise.all([
         postPromise,
         commentsPromise,

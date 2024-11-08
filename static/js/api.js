@@ -15,6 +15,12 @@ export const createPost = async (session, post) => {
       throw error;
     }
   },
+  getPost = async (session, postID) =>
+    await getWithSession(session, `/api/posts/${postID}`),
+  getCommentsForPost = async (session, postID) =>
+    await getWithSession(session, `/api/posts/${postID}/comments`),
+  getUser = async (session, userID) =>
+    await getWithSession(session, `/api/users/${userID}`),
   createComment = async (session, postID, comment) =>
     await postWithSession(session, `/api/comments/new`, {
       postID: postID,
@@ -40,6 +46,8 @@ export const createPost = async (session, post) => {
     await postWithSession(session, `/api/comments/${postID}/vote`, {
       voteValue: vote,
     }),
+  signOut = async (session) =>
+    await getWithSession(session, "/auth/destroy-session"),
   getMe = async (session) => {
     const localMeKey = `evil-forum-me`;
     let savedMe = undefined;

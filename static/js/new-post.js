@@ -1,5 +1,4 @@
 import { createPost, getMe } from "./api.js";
-import { getWithSession } from "./network.js";
 import { getCurrentSession } from "./session.js";
 import { $navBar, $postWidget } from "./shared-components.js";
 import { make$Page, replaceContent, style, update } from "./ui.js";
@@ -127,7 +126,7 @@ $page.form.onsubmit = async (e) => {
       postID = response.post_id;
     location.assign(`/posts/${postID}`);
   } catch (err) {
-    // TODO post error
+    location.assign("/?message=failedToPost");
   }
   return false;
 };
