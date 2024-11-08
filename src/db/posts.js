@@ -249,13 +249,12 @@ export const dbCreatePost = async (userID, post) => {
   dbQueuePostReplyNotification = async (postID, comment, userID) => {
     const [post, childCommentUser] = await Promise.all([
         dbGetPost(postID),
-        dbGetUser(childCommentUserID),
+        dbGetUser(userID),
       ]),
       postUserID = post.user_id,
-      childCommentUserID = userID,
       childCommentUsername = childCommentUser.user_username,
       childCommentDisplayName = childCommentUser.user_displayname;
-    if (postUserID === childCommentUserID) return;
+    if (postUserID === userID) return;
     dbQueueNotification(postUserID, "comment_reply", {
       header: `A reply has been made to your post "${post.post_title}"`,
       body: `User ${san(childCommentDisplayName)} <${san(childCommentUsername)}> has replied:

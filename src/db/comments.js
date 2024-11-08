@@ -70,7 +70,7 @@ export const dbGetCommentsForPost = async (postID, page, userID) => {
             select
               *
             from all_comments_for_post where comment_chain_depth = 0
-            order by comment_votes desc, comment_timestamp desc
+            order by comment_deleted desc, comment_votes desc, comment_timestamp desc
               limit $3 offset $4
           ),
           first_level_comment_ids as (
@@ -97,7 +97,7 @@ export const dbGetCommentsForPost = async (postID, page, userID) => {
                 on first_level_comment_ids.root_id = all_comments_for_post.comment_root
             where
               comment_chain_depth != 0
-            order by comment_votes desc, comment_timestamp desc
+            order by comment_deleted desc, comment_votes desc, comment_timestamp desc
           ),
           all_returned_comments as (
             select * from first_level_comments_for_post

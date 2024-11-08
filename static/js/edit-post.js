@@ -14,8 +14,7 @@ const currentSession = await getCurrentSession(),
       .filter((path) => path !== "")
       .slice(-2)[0],
   );
-if (currentSession === undefined)
-  location.assign("/?message=editPostError&reason=not-logged-in");
+if (currentSession === undefined) location.assign("/?message=editLoggedOut");
 const [postInformation, userInformation] = await Promise.all([
     getWithSession(currentSession, `/api/posts/${postID}`),
     getMe(currentSession),
@@ -52,14 +51,20 @@ updatePreview();
 $page.postTextContent.value = post.post_text;
 $page.postTextContent.disabled = false;
 
-if (
-  post.post_text === null ||
-  post.post_edited_at !== null ||
-  !post.post_mine ||
-  post.post_locked ||
-  post.post_deleted
-) {
-  // TODO error message
+if (post.post_locked || post.post_deleted) {
+  location.assign("/?message=postLockedDeleted");
+  throw "Can't edit post";
+}
+if (!post.post_mine) {
+  location.assign("/?message=editPostOwnership");
+  throw "Can't edit post";
+}
+if (!post.post_text) {
+  location.assign("/?message=editLinkPost");
+  throw "Can't edit post";
+}
+if (post.post_edited_at) {
+  location.assign("/?message=editPostTwice");
   throw "Can't edit post";
 }
 

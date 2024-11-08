@@ -81,7 +81,6 @@ div.textarea-placeholder {
 
 input[type="submit"] {
     background-color: #aed9e0;
-    margin-top: 1em;
     font-weight: bold;
 }
 
@@ -217,9 +216,47 @@ label {
     justify-content: center;
 }
 
+.forehead-success {
+    background-color: #aed9e0;
+}
+.forehead-failure {
+    background-color: #9fa0c3;
+}
+div#homepage-forehead {
+    padding: 1em;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    transition:
+        top 1s ease-in-out,
+        opacity 1s ease-in-out;
+}
+#homepage-forehead.forehead-removed {
+    top: -100%;
+    pointer-events: none;
+    opacity: 0;
+}
+div#homepage-forehead h3 {
+    margin-top: 0;
+}
+div#homepage-forehead b,
+div#homepage-forehead input {
+    margin-left: 1em;
+    display: block;
+    margin-bottom: 0.5em;
+}
+div#homepage-forehead *:last-child {
+    margin-bottom: 0;
+}
+
 .dummy-post {
     padding: 0.25rem;
     margin: 0.25rem;
     opacity: 0.75;
     background-color: #aed9e0;
+}
+
+.hidden {
+    display: none;
 }

@@ -117,6 +117,7 @@ export const addEllipsis = ($parent) => {
       "dishonourable",
       "sinful",
       "immoral",
+      "odious",
       "dastardly",
       "perilous",
       "hostile",
@@ -176,7 +177,7 @@ export const addEllipsis = ($parent) => {
       return `at ${time}`;
     } else if (daysAgo < 1) {
       return `yesterday at ${time}`;
-    } else if (daysAgo < 2) {
+    } else if (daysAgo < 1.25) {
       return `about a day ago`;
     } else if (daysAgo < 6) {
       return `${dayOfWeek} at ${time}`;

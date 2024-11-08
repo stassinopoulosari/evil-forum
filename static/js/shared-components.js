@@ -1,4 +1,5 @@
 import {
+  deleteComment,
   deletePost,
   editComment,
   getMe,
@@ -100,29 +101,60 @@ export const $commentWidget = (
       }),
       $commentParagraph = update(make("p"), {
         innerText: comment.comment_content,
+      }),
+      $commentUsername = update(make("a"), {
+        innerText: comment.user_displayname ?? "[nobody]",
+        href:
+          comment.user_username === null
+            ? ""
+            : `/users/${comment.user_username}`,
+      }),
+      $vote = $voteWidget(
+        comment.comment_votes,
+        comment.vote_positive,
+        async (voteValue) => {
+          voteOnComment(
+            await getCurrentSession(),
+            comment.comment_id,
+            voteValue,
+          );
+        },
+        comment.comment_deleted ? true : false,
+      ),
+      $deleteButton = update(make("a"), {
+        innerText: "delete",
+        href: `#`,
+        onclick: () => {
+          if (confirm("Are you sure you would like to delete this comment"))
+            (async () => {
+              await deleteComment(
+                await getCurrentSession(),
+                comment.comment_id,
+              );
+              alert("Comment deleted");
+              update($commentUsername, {
+                href: ".",
+                innerText: "[nobody]",
+              });
+              $commentParagraph.innerText = "[deleted by user]";
+              attr($deleteButton, { disabled: true, href: undefined });
+              attr($editButton, { disabled: true, href: undefined });
+              if ($replyButton !== undefined)
+                attr($replyButton, { disabled: true, href: undefined });
+              [].forEach.call(
+                $vote.querySelectorAll("button"),
+                ($button) => ($button.disabled = true),
+              );
+              // TODO show comment deleted visually
+            })();
+          return false;
+        },
       });
     return children(classes(make("div"), ["comment"]), [
       children(classes(make("div"), ["comment-body"]), [
-        $voteWidget(
-          comment.comment_votes,
-          comment.vote_positive,
-          async (voteValue) => {
-            voteOnComment(
-              await getCurrentSession(),
-              comment.comment_id,
-              voteValue,
-            );
-          },
-          comment.comment_deleted ? true : false,
-        ),
+        $vote,
         children(make("div"), [
-          update(make("a"), {
-            innerText: comment.user_displayname ?? "[nobody]",
-            href:
-              comment.user_username === null
-                ? ""
-                : `/users/${comment.user_username}`,
-          }),
+          $commentUsername,
           $commentParagraph,
           children(make("div"), [
             update(make("i"), {
@@ -148,26 +180,7 @@ export const $commentWidget = (
                   update(make("span"), {
                     innerText: " • ",
                   }),
-                  update(make("a"), {
-                    innerText: "delete",
-                    href: `#`,
-                    onclick: () => {
-                      if (
-                        confirm(
-                          "Are you sure you would like to delete this comment",
-                        )
-                      )
-                        (async () => {
-                          await deleteComment(
-                            await getCurrentSession(),
-                            comment.comment_id,
-                          );
-                          alert("Comment deleted");
-                          // TODO show comment deleted visually
-                        })();
-                      return false;
-                    },
-                  }),
+                  $deleteButton,
                 ]
               : []),
           ]),
@@ -337,7 +350,7 @@ export const $postWidget = (post, dummyVote) =>
                     (async () => {
                       await deletePost(await getCurrentSession(), post.post_id);
                       alert("Post deleted");
-                      // TODO show post deleted visually
+                      location.reload();
                     })();
                   return false;
                 },

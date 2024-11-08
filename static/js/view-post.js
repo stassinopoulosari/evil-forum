@@ -44,8 +44,13 @@ const $newCommentWidget = (postID, replyTo, $replyButton) => {
         : make("textarea"),
       {
         required: true,
-        value:
-          currentSession === undefined ? "Sign in to leave a comment!" : "",
+        onkeyup: () => {
+          if ($commentContent.value.trim().length < 1) {
+            $submitButton.disabled = true;
+          } else {
+            $submitButton.disabled = false;
+          }
+        },
         innerHTML:
           currentSession === undefined
             ? "<span><a href='/auth/google'>Sign in</a>&nbsp;to leave a comment!</span>"
@@ -53,6 +58,11 @@ const $newCommentWidget = (postID, replyTo, $replyButton) => {
         disabled: currentSession === undefined,
       },
     ),
+    $submitButton = update(make("input"), {
+      type: "submit",
+      value: "post",
+      disabled: true,
+    }),
     $newCommentContainer = classes(make("form"), ["new-comment"]);
   return children(
     update($newCommentContainer, {
@@ -76,25 +86,23 @@ const $newCommentWidget = (postID, replyTo, $replyButton) => {
     }),
     [
       $commentContent,
-      update(make("input"), {
-        type: "submit",
-        value: "post",
-        disabled: currentSession === undefined,
-      }),
-      ...(replyTo !== undefined
-        ? [
-            update(make("input"), {
-              type: "button",
-              value: "cancel",
-              onclick: (e) => {
-                e.preventDefault();
-                style($newCommentContainer, { display: "none" });
-                attr($replyButton, { disabled: undefined });
-                return false;
-              },
-            }),
-          ]
-        : []),
+      children(classes(make("div"), ["form-group"]), [
+        $submitButton,
+        ...(replyTo !== undefined
+          ? [
+              update(make("input"), {
+                type: "button",
+                value: "cancel",
+                onclick: (e) => {
+                  e.preventDefault();
+                  style($newCommentContainer, { display: "none" });
+                  attr($replyButton, { disabled: undefined });
+                  return false;
+                },
+              }),
+            ]
+          : []),
+      ]),
     ],
   );
 };

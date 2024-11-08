@@ -9,8 +9,8 @@ const $page = make$Page("newPost");
 const currentSession = await getCurrentSession();
 
 if (currentSession === undefined) {
-  // TODO - Not signed in error
-  location.assign("/?message=newPostError&reason=notSignedIn");
+  location.assign("/?message=newPostLoggedOut");
+  throw "Not signed in";
 }
 
 const userInformation = await getMe(currentSession);
@@ -24,9 +24,40 @@ const getSelectedPostType = () => {
 
 const $dummyPost = $page.dummyPost;
 
+const isValidURL = (url) => {
+  try {
+    if (!["http:", "https:"].includes(new URL(url.toLowerCase()).protocol))
+      throw "";
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 const updatePreview = () => {
+  if ($page.postTitle.value.trim().length < 1) {
+    $page.submitButton.disabled = true;
+    $page.submitButton.title = "Your title must not be blank";
+  } else if (
+    getSelectedPostType() === "text" &&
+    $page.postTextContent.value.trim().length < 1
+  ) {
+    $page.submitButton.disabled = true;
+    $page.submitButton.title = "Your post text must not be blank";
+  } else if (
+    getSelectedPostType() === "link" &&
+    ($page.postLinkContent.value.trim().length < 1 ||
+      !isValidURL($page.postLinkContent.value))
+  ) {
+    $page.submitButton.disabled = true;
+    $page.submitButton.title =
+      "Your post link must not be blank and must have an http or https protocol";
+  } else {
+    $page.submitButton.disabled = false;
+    $page.submitButton.title = "Ready to post!";
+  }
   const title =
-      $page.postTitle.value.trim().length > 1
+      $page.postTitle.value.trim().length >= 1
         ? $page.postTitle.value
         : "my evil plan",
     postType = getSelectedPostType(),
@@ -54,7 +85,9 @@ $page.postLinkContent.onkeyup =
   $page.postTextContent.onkeyup =
   $page.postTitle.onkeyup =
     updatePreview;
-$radioButtons.forEach(($button) => ($button.onselect = updatePreview));
+$radioButtons.forEach(
+  ($button) => ($button.onclick = $button.onchange = updatePreview),
+);
 
 $radioButtons.map(($radioButton) => {
   $radioButton.onchange = () => {
@@ -88,12 +121,14 @@ $page.form.onsubmit = async (e) => {
   } else {
     post.text = $page.postTextContent.value;
   }
-  const session = await getCurrentSession(),
-    response = await createPost(session, post),
-    postID = response.post_id;
-  location.assign(`/posts/${postID}`);
-  // TODO redirect to post on success
-  // TODO post error
+  try {
+    const session = await getCurrentSession(),
+      response = await createPost(session, post),
+      postID = response.post_id;
+    location.assign(`/posts/${postID}`);
+  } catch (err) {
+    // TODO post error
+  }
   return false;
 };
 
