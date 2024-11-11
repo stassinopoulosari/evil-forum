@@ -78,7 +78,6 @@ const handleMessage = () => {
       disposition = "failure";
   }
   update($page.foreheadMessage, { innerText: message });
-  // update($page.foreheadMessage, { innerText: subtitle });
   let timeout;
   const dismiss = () => {
     classes($page.forehead, ["forehead-removed"]);

@@ -347,7 +347,7 @@ export const dbGetCommentsForPost = async (postID, page, userID) => {
 See more at ${PROTOCOL}://${DOMAIN}/posts/${postID}`,
       bodyHTML: `
   <h1>A reply has been made to your comment on "${san(post.post_title)}"</h1>
-  <p>User ${san(childCommentDisplayName)} <${san(childCommentUsername)}> has replied:</p>
+  <p>User ${san(childCommentDisplayName)} &lt;${san(childCommentUsername)}&gt; has replied:</p>
   <p style='font-family: monospace; margin-left: 1em;'>
   &gt; ${san(comment.content).split(/\r|\n/g).join("<br/>&gt; ")}
   </p>

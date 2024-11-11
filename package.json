@@ -9,12 +9,15 @@
   "main": "entryPoints/web.js",
   "scripts": {
     "web": "node dynos/web.js",
-    "recur": "node dynos/recur.js"
+    "recur": "node dynos/recur.js",
+    "local": "sh scripts/local.sh",
+    "reset": "sh scripts/reset.sh",
+    "launch": "sh scripts/launch.sh",
+    "unlaunch": "sh scripts/unlaunch.sh"
   },
   "dependencies": {
     "axios": "^1.7.7",
     "connect-pg-simple": "^10.0.0",
-    "crypto": "^1.0.1",
     "express": "^4.21.1",
     "express-rate-limit": "^7.4.1",
     "express-session": "^1.18.1",

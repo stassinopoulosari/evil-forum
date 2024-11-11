@@ -73,6 +73,16 @@ export const DOCS = {
         voteValue: "0, 1, or -1",
       },
     },
+    SET_NOTIFICATION_SETTINGS: {
+      error:
+        "You must include a request body with the below parameters to this endpoint.",
+      method: "PUT",
+      path: "/api/settings/notifications",
+      parameters: {
+        postReply: "Receive e-mails for replies to your post",
+        commentReply: "Receive e-mails for replies to your comments",
+      },
+    },
   },
   rejectWithDocs = (docs) => (req, res) => {
     res.status(400);

@@ -29,10 +29,42 @@
         <nav id="user-navBar"></nav>
         <div class="content">
             <div id="user-userInformation">
-                <h1 id="user-userDisplayName">
-                    Loading<span class="loading-ellipsis"></span>
+                <h1>
+                    <span id="user-userDisplayName"
+                        >Loading<span class="loading-ellipsis"></span
+                    ></span>
+                    <span id="user-userYou" title="You" class="hidden">🫵</span>
                 </h1>
                 <h2 id="user-username"></h2>
+            </div>
+            <div id="user-userSettings" class="hidden">
+                <h2>User Settings</h2>
+                <form id="user-userNotificationSettingsForm">
+                    <div class="form-group">
+                        <label for="user-userPostReplySetting"
+                            >Get notifications for post replies</label
+                        >
+                        <input type="checkbox" id="user-userPostReplySetting" />
+                    </div>
+                    <div class="form-group">
+                        <label for="user-userCommentReplySetting"
+                            >Get notifications for comment replies</label
+                        >
+                        <input
+                            type="checkbox"
+                            id="user-userCommentReplySetting"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <input type="submit" /><label
+                            class="hidden"
+                            id="user-settingsFeedback"
+                        ></label
+                        ><label id="user-settingsWaiting" class="hidden"
+                            >Loading<span class="loading-ellipsis"></span
+                        ></label>
+                    </div>
+                </form>
             </div>
             <div id="user-userContent"></div>
         </div>

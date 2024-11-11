@@ -23,33 +23,34 @@ export const dbUserActive = async (userID) => {
       paramArgumentString,
     ]);
     try {
-      const userQuery = await client.query(
-        "select user_id from users where user_id = $1 and (user_banned = FALSE or user_banned is NULL)",
-        [userID],
-      );
+      const userQuery = await client.query({
+        name: "user_active_query",
+        text: "select user_id from users where user_id = $1 and (user_banned = FALSE or user_banned is NULL)",
+        values: [userID],
+      });
       if (userQuery.rows.length === 1) return true;
       return false;
     } catch (err) {
       throw POSTGRES_ERROR(err);
     }
   },
-  dbUserActiveByUsername = async (username) => {
-    if (client === undefined) throw NO_CLIENT_ERROR;
-    validateArgument("username", username, [
-      paramArgumentNonNull,
-      paramArgumentString,
-    ]);
-    try {
-      const userQuery = await client.query(
-        "select user_id from users where user_username = $1 and (user_banned = FALSE or user_banned is NULL)",
-        [username],
-      );
-      if (userQuery.rows.length === 1) return true;
-      return false;
-    } catch (err) {
-      throw POSTGRES_ERROR(err);
-    }
-  },
+  // dbUserActiveByUsername = async (username) => {
+  //   if (client === undefined) throw NO_CLIENT_ERROR;
+  //   validateArgument("username", username, [
+  //     paramArgumentNonNull,
+  //     paramArgumentString,
+  //   ]);
+  //   try {
+  //     const userQuery = await client.query(
+  //       "select user_id from users where user_username = $1 and (user_banned = FALSE or user_banned is NULL)",
+  //       [username],
+  //     );
+  //     if (userQuery.rows.length === 1) return true;
+  //     return false;
+  //   } catch (err) {
+  //     throw POSTGRES_ERROR(err);
+  //   }
+  // },
   dbCreateUser = async (username, displayName, googleID, email) => {
     if (client === undefined) throw NO_CLIENT_ERROR;
     validateArgument("username", username, [

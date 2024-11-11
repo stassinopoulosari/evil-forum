@@ -198,6 +198,11 @@ authenticationRouter
     res.sendFile("views/auth-logout.html", { root: "./static" }),
   );
 
+authenticationRouter.use(async (req, res) => {
+  res.status(404);
+  res.json({ status: false, error: "Path/request type not found" });
+});
+
 export const authenticationFailError = (res, action) => {
   res.status(403);
   return res.json({

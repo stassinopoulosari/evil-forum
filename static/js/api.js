@@ -51,6 +51,7 @@ export const createPost = async (session, post) => {
   getMe = async (session) => {
     const localMeKey = `evil-forum-me`;
     let savedMe = undefined;
+    if (session === undefined) return undefined;
     try {
       savedMe = JSON.parse(localStorage.getItem(localMeKey) ?? ``);
     } catch {}

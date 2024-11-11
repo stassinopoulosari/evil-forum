@@ -80,8 +80,8 @@ export const dbGetNotificationSettings = async (userID) => {
                 notification_comment_reply = $3`,
             values: [
               userID,
-              newSettings.notification_comment_reply,
               newSettings.notification_post_reply,
+              newSettings.notification_comment_reply,
             ],
           })
         ).rowCount === 1

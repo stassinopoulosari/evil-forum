@@ -14,7 +14,12 @@ import {
 } from "./posts.js";
 import { routeGetHomepage } from "./homepage.js";
 import { routePostCommentVote, routePostPostVote } from "./votes.js";
-import { routeGetUserMe, routeGetUser } from "./users.js";
+import {
+  routeGetUserMe,
+  routeGetUser,
+  routeGetNotificationSettings,
+  routeSetNotificationSettings,
+} from "./users.js";
 import { rateLimit } from "express-rate-limit";
 import { DOCS, rejectWithDocs } from "./apiDocs.js";
 
@@ -86,6 +91,18 @@ router
   .get("/posts/:postID", routeGetPost)
   .get("/posts/:postID/comments", routeGetPostComments);
 
+// Route user settings
+
+router
+  .get("/settings", routeGetNotificationSettings)
+  .put("/settings", routeSetNotificationSettings)
+  .post("/settings", rejectWithDocs(DOCS.SET_NOTIFICATION_SETTINGS));
+
 router.get("/users/me", routeGetUserMe).get("/users/:username", routeGetUser);
+
+router.use((req, res) => {
+  res.status(404);
+  res.json({ status: false, error: "Path/request type not found" });
+});
 
 export default router;

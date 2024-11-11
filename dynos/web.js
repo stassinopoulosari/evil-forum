@@ -43,6 +43,10 @@ express()
   // Incorporate API and authentication routers
   .use("/api", api)
   .use("/auth", auth.authenticationRouter)
+  .use("*", (req, res) => {
+    res.status(404);
+    return res.sendFile("views/view-404.html", { root: staticRoot });
+  })
   .listen(PORT, () => console.log(`Listening on ${PORT}`));
 
 process.on("unhandledRejection", (reason, p) => {

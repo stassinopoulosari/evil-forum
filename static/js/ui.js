@@ -120,6 +120,8 @@ export const addEllipsis = ($parent) => {
       "odious",
       "dastardly",
       "perilous",
+      "pernicious",
+      "smelly",
       "hostile",
       "miserable",
       "grim",
@@ -211,3 +213,7 @@ const progressEllipsis = () => {
 };
 setInterval(progressEllipsis, 500);
 progressEllipsis();
+
+[].forEach.call(document.getElementsByClassName("synonym"), ($el) => {
+  $el.innerText = getSynonym();
+});

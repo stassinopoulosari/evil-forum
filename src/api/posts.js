@@ -30,6 +30,13 @@ export const routeGetPost = async (req, res) => {
     if (req.evilSession === undefined || req.evilUserID === undefined) {
       return authenticationFailError(res, "edit post");
     }
+    if (req.body.text === undefined || typeof req.body.text !== "string") {
+      res.status(400);
+      return res.json({
+        success: false,
+        ...DOCS.EDIT_POST,
+      });
+    }
     const postID = parseInt(req.params.postID),
       passedText = req.body.text.trim(),
       userID = req.evilUserID;
@@ -37,8 +44,6 @@ export const routeGetPost = async (req, res) => {
       postID === undefined ||
       isNaN(postID) ||
       typeof postID !== "number" ||
-      passedText === undefined ||
-      typeof passedText !== "string" ||
       passedText.trim().length < 1 ||
       passedText.trim().length > MAX_POST_LENGTH
     ) {
