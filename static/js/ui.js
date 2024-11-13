@@ -125,6 +125,7 @@ export const addEllipsis = ($parent) => {
       "hostile",
       "miserable",
       "grim",
+      "bad",
     ];
     const synonym =
       evilSynonyms[Math.floor(Math.random() * evilSynonyms.length)];

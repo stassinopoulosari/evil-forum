@@ -163,7 +163,6 @@ export const dbGetSession = async (sessionID) => {
         "delete from user_sessions where session_id = $1 returning *;",
         [sessionID],
       );
-      console.log(deletionQuery.rows);
       if (deletionQuery.rows.length !== 1) return false;
       return true;
     } catch (err) {

@@ -125,7 +125,7 @@ export const $commentWidget = (
         innerText: "delete",
         href: `#`,
         onclick: () => {
-          if (confirm("Are you sure you would like to delete this comment"))
+          if (confirm("Are you sure you would like to delete this comment?"))
             (async () => {
               await deleteComment(
                 await getCurrentSession(),
@@ -345,7 +345,7 @@ export const $postWidget = (post, dummyVote) =>
                 innerText: "delete",
                 onclick: () => {
                   if (
-                    confirm("Are you sure you would like to delete this post")
+                    confirm("Are you sure you would like to delete this post?")
                   )
                     (async () => {
                       await deletePost(await getCurrentSession(), post.post_id);

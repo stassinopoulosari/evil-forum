@@ -312,7 +312,6 @@ export const dbGetCommentsForPost = async (postID, page, userID) => {
         console.error(err),
       );
       returnedComment.comment_votes = 1;
-      console.log(replyTo);
       if (replyTo !== null) {
         dbQueueCommentReplyNotification(postID, replyTo, comment, userID);
       } else {

@@ -34,49 +34,66 @@ const isValidURL = (url) => {
 };
 
 const updatePreview = () => {
-  if ($page.postTitle.value.trim().length < 1) {
-    $page.submitButton.disabled = true;
-    $page.submitButton.title = "Your title must not be blank";
-  } else if (
-    getSelectedPostType() === "text" &&
-    $page.postTextContent.value.trim().length < 1
-  ) {
-    $page.submitButton.disabled = true;
-    $page.submitButton.title = "Your post text must not be blank";
-  } else if (
-    getSelectedPostType() === "link" &&
-    ($page.postLinkContent.value.trim().length < 1 ||
-      !isValidURL($page.postLinkContent.value))
-  ) {
-    $page.submitButton.disabled = true;
-    $page.submitButton.title =
-      "Your post link must not be blank and must have an http or https protocol";
-  } else {
-    $page.submitButton.disabled = false;
-    $page.submitButton.title = "Ready to post!";
-  }
-  const title =
-      $page.postTitle.value.trim().length >= 1
-        ? $page.postTitle.value
-        : "my evil plan",
-    postType = getSelectedPostType(),
-    postLink = $page.postLinkContent.value;
-  replaceContent($dummyPost, [
-    $postWidget(
-      {
-        post_text: postType === "text" ? "" : undefined,
-        post_link: postType === "link" ? postLink : undefined,
-        post_title: title,
-        user_username: userInformation.user_username,
-        user_displayname: userInformation.user_displayname,
-        post_id: "new",
-        post_mine: true,
-        post_timestamp: new Date(Date.now() + 10000).toISOString(),
-      },
-      true,
-    ),
-  ]);
-};
+    if ($page.postTitle.value.trim().length < 1) {
+      $page.submitButton.disabled = true;
+      $page.submitLabel.innerText = "Your title must not be blank";
+    } else if (
+      getSelectedPostType() === "text" &&
+      $page.postTextContent.value.trim().length < 2
+    ) {
+      $page.submitButton.disabled = true;
+      $page.submitLabel.innerText = "Your post text must not be blank";
+    } else if (
+      getSelectedPostType() === "link" &&
+      ($page.postLinkContent.value.trim().length < 2 ||
+        !isValidURL($page.postLinkContent.value))
+    ) {
+      $page.submitButton.disabled = true;
+      $page.submitLabel.innerText =
+        "Your post link must not be blank and must have an http or https protocol";
+    } else {
+      $page.submitButton.disabled = false;
+      $page.submitLabel.innerText = "";
+    }
+    const title =
+        $page.postTitle.value.trim().length >= 1
+          ? $page.postTitle.value
+          : "my evil plan",
+      postType = getSelectedPostType(),
+      postLink = $page.postLinkContent.value;
+    replaceContent($dummyPost, [
+      $postWidget(
+        {
+          post_text: postType === "text" ? "" : undefined,
+          post_link: postType === "link" ? postLink : undefined,
+          post_title: title,
+          user_username: userInformation.user_username,
+          user_displayname: userInformation.user_displayname,
+          post_id: "new",
+          post_mine: true,
+          post_timestamp: new Date(Date.now() + 10000).toISOString(),
+        },
+        true,
+      ),
+    ]);
+  },
+  $formElements = [
+    $page.postTitle,
+    $page.postLinkContent,
+    $page.postTextContent,
+    ...$radioButtons,
+    $page.submitButton,
+  ],
+  disableForm = () => {
+    [].forEach.call($formElements, ($element) => {
+      $element.disabled = true;
+    });
+  },
+  enableForm = () => {
+    [].forEach.call($formElements, ($element) => {
+      $element.disabled = false;
+    });
+  };
 
 updatePreview();
 
@@ -109,7 +126,7 @@ $radioButtons.map(($radioButton) => {
 
 $page.form.onsubmit = async (e) => {
   e.preventDefault();
-  // TODO disable elements while posting
+  disableForm();
   const postType = getSelectedPostType(),
     postTitle = $page.postTitle.value;
   const post = {
@@ -126,7 +143,9 @@ $page.form.onsubmit = async (e) => {
       postID = response.post_id;
     location.assign(`/posts/${postID}`);
   } catch (err) {
-    location.assign("/?message=failedToPost");
+    enableForm();
+    $page.submitLabel.innerText = `Failed to make post. Please try again later (and see the console for a more specific error message)`;
+    // location.assign("/?message=failedToPost");
   }
   return false;
 };

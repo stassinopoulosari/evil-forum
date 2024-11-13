@@ -134,7 +134,6 @@ export const dbCreatePost = async (userID, post) => {
 
     if (existingPost === undefined || existingPost.post_deleted === true)
       throw PERMISSION_ENTITY_DELETED_ERROR("post", postID);
-    console.log(existingPost.user_id, userID);
     if (existingPost.user_id !== userID) throw USER_ID_MISMATCH_ERROR(userID);
     if (!userActive) throw PERMISSION_USER_BANNED_ERROR(userID);
     try {
