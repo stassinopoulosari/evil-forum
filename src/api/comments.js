@@ -74,7 +74,7 @@ export const routeGetPostComments = async (req, res) => {
       passedContent === undefined ||
       typeof passedContent !== "string" ||
       passedContent.trim().length < 1 ||
-      passedConent.trim().length > MAX_COMMENT_LENGTH
+      passedContent.trim().length > MAX_COMMENT_LENGTH
     ) {
       res.status(400);
       return res.json({
