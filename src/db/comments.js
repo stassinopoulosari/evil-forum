@@ -208,7 +208,7 @@ export const dbGetCommentsForPost = async (postID, page, userID) => {
           comment_edited_at = NOW()
         where comment_id = $2
       `,
-        [content, commentID],
+        [content.trim(), commentID],
       );
       return true;
     } catch (err) {
@@ -304,7 +304,7 @@ export const dbGetCommentsForPost = async (postID, page, userID) => {
               comment_timestamp,
               comment_votes
             ) values($1, $2, $3, $4, $5, $6, now(), 0) returning *`,
-          [postID, userID, replyTo, comment.content, chainDepth, root],
+          [postID, userID, replyTo, comment.content.trim(), chainDepth, root],
         ),
         commentID = commentQuery.rows[0].comment_id,
         returnedComment = { ...commentQuery.rows[0] };

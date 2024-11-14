@@ -212,6 +212,7 @@ export const $commentWidget = (
         update(make("button"), {
           innerText: "up",
           disabled: !loggedIn || disabled,
+          title: "Upvote",
         }),
         ["vote-up", ...(vote_positive ? ["on"] : [])],
       ),
@@ -221,6 +222,7 @@ export const $commentWidget = (
       $downButton = classes(
         update(make("button"), {
           innerText: "down",
+          title: "Downvote",
           disabled: !loggedIn || disabled,
         }),
         ["vote-down", ...(vote_positive === false ? ["on"] : [])],
@@ -247,6 +249,7 @@ export const $commentWidget = (
         } catch (error) {
           $upButton.disabled = $downButton.disabled = true;
           $voteCounter.innerText = "💀";
+          $voteCounter.title = "Failed to vote. Please try reloading the page.";
           console.error(error);
         }
       };
@@ -262,10 +265,8 @@ const getHostnameForURL = (url) => {
     return "self";
   }
 };
-export const $postWidget = (post, dummyVote) =>
-  children(classes(make("div"), ["post"]), [
-    // Votes
-    !dummyVote
+export const $postWidget = (post, dummyVote) => {
+  const $vote = !dummyVote
       ? $voteWidget(
           post.post_votes,
           post.vote_positive,
@@ -275,6 +276,47 @@ export const $postWidget = (post, dummyVote) =>
           post.post_deleted,
         )
       : $dummyVoteWidget(),
+    $postHostname = update(make("span"), {
+      innerText: `(${post.post_link ? getHostnameForURL(post.post_link) : "self"})`,
+    }),
+    $deleteButton = update(make("a"), {
+      href: `/posts/${post.post_id}/delete`,
+      innerText: "delete",
+      onclick: () => {
+        if (confirm("Are you sure you would like to delete this post?"))
+          (async () => {
+            await deletePost(await getCurrentSession(), post.post_id);
+            alert("Post deleted");
+            location.reload();
+          })();
+        return false;
+      },
+    }),
+    $editButton = update(make(post.post_edited_at ? "span" : "a"), {
+      innerText: "edit",
+      href: `/posts/${post.post_id}/edit`,
+      disabled: post.post_edited_at !== null,
+      title: post.post_edited_at
+        ? "posts may only be edited once"
+        : "edit post",
+    }),
+    $postControls = [
+      ...(post.post_text !== null
+        ? [
+            update(make("span"), {
+              innerText: " • ",
+            }),
+            $editButton,
+          ]
+        : []),
+      update(make("span"), {
+        innerText: " • ",
+      }),
+      $deleteButton,
+    ];
+  return children(classes(make("div"), ["post"]), [
+    // Votes
+    $vote,
     children(classes(make("div"), ["post-stack"]), [
       // Post title
       children(
@@ -285,11 +327,7 @@ export const $postWidget = (post, dummyVote) =>
           update(make("h2"), {
             innerText: post.post_title ?? "",
           }),
-          post.post_link
-            ? update(make("span"), {
-                innerText: `(${getHostnameForURL(post.post_link)})`,
-              })
-            : update(make("span"), { innerText: "(self)" }),
+          $postHostname,
         ],
       ),
       // User Display name
@@ -320,46 +358,11 @@ export const $postWidget = (post, dummyVote) =>
           innerText: "comments",
         }),
         // If it is your own post
-        ...(post.post_mine === true
-          ? [
-              ...(post.post_text !== null
-                ? [
-                    update(make("span"), {
-                      innerText: " • ",
-                    }),
-                    update(make(post.post_edited_at ? "span" : "a"), {
-                      innerText: "edit",
-                      href: `/posts/${post.post_id}/edit`,
-                      disabled: post.post_edited_at !== null,
-                      title: post.post_edited_at
-                        ? "posts may only be edited once"
-                        : "edit post",
-                    }),
-                  ]
-                : []),
-              update(make("span"), {
-                innerText: " • ",
-              }),
-              update(make("a"), {
-                href: `/posts/${post.post_id}/delete`,
-                innerText: "delete",
-                onclick: () => {
-                  if (
-                    confirm("Are you sure you would like to delete this post?")
-                  )
-                    (async () => {
-                      await deletePost(await getCurrentSession(), post.post_id);
-                      alert("Post deleted");
-                      location.reload();
-                    })();
-                  return false;
-                },
-              }),
-            ]
-          : []),
+        ...(post.post_mine === true ? $postControls : []),
       ]),
     ]),
   ]);
+};
 
 export const $navBar = ($el) => {
   const $authLinks = {

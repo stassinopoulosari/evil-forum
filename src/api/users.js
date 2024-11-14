@@ -76,7 +76,11 @@ export const routeGetUserMe = async (req, res) => {
       typeof req.body.commentReply !== "boolean"
     ) {
       res.status(400);
-      return res.json({ success: false, ...DOCS.SET_NOTIFICATION_SETTINGS });
+      return res.json({
+        success: false,
+        ...DOCS.SET_NOTIFICATION_SETTINGS,
+        error: "postReply and commentReply must both be booleans",
+      });
     }
     try {
       const settingsObject = {

@@ -1,4 +1,5 @@
 import { authenticationFailError } from "../auth.js";
+import { MAX_COMMENT_LENGTH } from "../config.js";
 import {
   dbCreateComment,
   dbDeleteComment,
@@ -72,12 +73,15 @@ export const routeGetPostComments = async (req, res) => {
       typeof commentID !== "number" ||
       passedContent === undefined ||
       typeof passedContent !== "string" ||
-      passedContent.trim().length < 1
+      passedContent.trim().length < 1 ||
+      passedConent.trim().length > MAX_COMMENT_LENGTH
     ) {
       res.status(400);
       return res.json({
         success: false,
         ...DOCS.EDIT_COMMENT,
+        error:
+          "Comment ID must be a number and the new content must be a non-empty string with length ≥ 1.",
       });
     }
     try {
@@ -97,20 +101,47 @@ export const routeGetPostComments = async (req, res) => {
     const passedComment = req.body.comment,
       postID = req.body.postID,
       userID = req.evilUserID;
-    if (
-      Object.keys(req.body).length === 0 ||
-      passedComment === undefined ||
-      postID === undefined ||
-      typeof passedComment !== "object" ||
-      typeof postID !== "number" ||
+    if (Object.keys(req.body).length === 0 || passedComment === undefined) {
+      res.status(400);
+      return res.json({
+        success: false,
+        ...DOCS.NEW_COMMENT,
+        error: "No form body provided",
+      });
+    } else if (postID === undefined || typeof postID !== "number") {
+      res.status(400);
+      return res.json({
+        success: false,
+        ...DOCS.NEW_COMMENT,
+        error: "Post ID must be a number",
+      });
+    } else if (typeof passedComment !== "object") {
+      res.status(400);
+      return res.json({
+        success: false,
+        ...DOCS.NEW_COMMENT,
+        error: "Invalid comment passed",
+      });
+    } else if (
       typeof passedComment.content !== "string" ||
-      (passedComment.replyTo !== undefined &&
-        typeof passedComment.replyTo !== "number")
+      passedComment.content.trim().length < 1 ||
+      passedComment.content.trim().length > MAX_COMMENT_LENGTH
     ) {
       res.status(400);
       return res.json({
         success: false,
         ...DOCS.NEW_COMMENT,
+        error: "Comment content must be a non-empty string",
+      });
+    } else if (
+      passedComment.replyTo !== undefined &&
+      typeof passedComment.replyTo !== "number"
+    ) {
+      res.status(400);
+      return res.json({
+        success: false,
+        ...DOCS.NEW_COMMENT,
+        error: "replyTo must be either undefined or a number",
       });
     }
     const comment = {

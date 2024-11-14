@@ -40,10 +40,14 @@ export const routeGetPost = async (req, res) => {
     const postID = parseInt(req.params.postID),
       passedText = req.body.text.trim(),
       userID = req.evilUserID;
-    if (
-      postID === undefined ||
-      isNaN(postID) ||
-      typeof postID !== "number" ||
+    if (postID === undefined || isNaN(postID) || typeof postID !== "number") {
+      res.status(400);
+      return res.json({
+        success: false,
+        ...DOCS.EDIT_POST,
+        error: "postID must be a number",
+      });
+    } else if (
       passedText.trim().length < 1 ||
       passedText.trim().length > MAX_POST_LENGTH
     ) {
@@ -51,6 +55,7 @@ export const routeGetPost = async (req, res) => {
       return res.json({
         success: false,
         ...DOCS.EDIT_POST,
+        error: `Post length must be between 1 and ${MAX_POST_LENGTH} characters`,
       });
     }
     try {
@@ -72,11 +77,12 @@ export const routeGetPost = async (req, res) => {
     }
     const postID = parseInt(req.params.postID),
       userID = req.evilUserID;
-    if (postID === undefined || isNaN(postID) || typeof postID !== "number") {
+    if (postID === undefined || isNaN(postID)) {
       res.status(400);
       return res.json({
         success: false,
         ...DOCS.DELETE_POST,
+        error: "Post ID must be a number",
       });
     }
     try {
@@ -99,19 +105,47 @@ export const routeGetPost = async (req, res) => {
     }
     const passedPost = req.body.post,
       userID = req.evilUserID;
+    console.log(
+      "Passed post text length",
+      (passedPost.text ?? "").trim().length,
+    );
     if (
       // Form content must be passed
       Object.keys(req.body).length === 0 ||
       passedPost === undefined ||
       typeof passedPost !== "object" ||
-      typeof passedPost.title !== "string" ||
+      typeof passedPost.title !== "string"
+    ) {
+      res.status(400);
+      return res.json({
+        success: false,
+        ...DOCS.NEW_POST,
+        error: "No content passed to form",
+      });
+    } else if (
       // Post must have a non-empty title
       passedPost.title.length < 1 ||
-      passedPost.title.length > MAX_POST_TITLE_LENGTH ||
+      passedPost.title.length > MAX_POST_TITLE_LENGTH
+    ) {
+      res.status(400);
+      return res.json({
+        success: false,
+        ...DOCS.NEW_POST,
+        error: `The post title must be between 1 and ${MAX_POST_TITLE_LENGTH} characters long.`,
+      });
+    } else if (
       // Post must have text of proper length
-      (passedPost.text !== undefined &&
-        passedPost.text.trim().length < 1 &&
-        passedPost.text.trim().length > MAX_POST_LENGTH) ||
+      passedPost.text !== undefined &&
+      (passedPost.text.trim().length < 1 ||
+        passedPost.text.trim().length > MAX_POST_LENGTH)
+    ) {
+      res.status(400);
+      return res.json({
+        success: false,
+        ...DOCS.NEW_POST,
+        error: `The post text must be between 1 and ${MAX_POST_LENGTH} characters long.`,
+      });
+    } else if (
       // Post cannot be both link and text
       (passedPost.link === undefined && passedPost.text === undefined) ||
       (passedPost.link !== undefined && passedPost.text !== undefined)
@@ -120,6 +154,7 @@ export const routeGetPost = async (req, res) => {
       return res.json({
         success: false,
         ...DOCS.NEW_POST,
+        error: `A post must be either a text or link post.`,
       });
     }
     const post = {
@@ -138,6 +173,7 @@ export const routeGetPost = async (req, res) => {
         res.status(400);
         return res.json({
           success: false,
+          ...DOCS.NEW_POST,
           error: "Only valid HTTP and HTTPS links are supported.",
         });
       }

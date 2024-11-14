@@ -8,6 +8,10 @@
 */
 @import url("https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap");
 
+* {
+    box-sizing: border-box;
+}
+
 html,
 body {
     padding: 0;
@@ -86,6 +90,18 @@ input[type="submit"] {
 
 span.spacer {
     flex: 1;
+}
+
+button,
+input[type="button"],
+input[type="submit"] {
+    cursor: pointer;
+}
+
+button:disabled,
+input[type="button"]:disabled,
+input[type="submit"]:disabled {
+    cursor: not-allowed;
 }
 
 .no-post-placeholder {
@@ -176,12 +192,13 @@ label {
 .vote-up,
 .vote-down {
     background: none;
-    border: none;
+    border: 0.1px dashed #444;
     cursor: pointer;
 }
 .on {
     background-color: #c14953;
     color: #fff;
+    border: none;
 }
 
 .user-view-comment {
