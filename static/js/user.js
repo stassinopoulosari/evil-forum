@@ -75,8 +75,11 @@ const setupSettings = async () => {
   };
   classes($page.userSettings, [], ["hidden"]);
 };
-
-if (userInformation.user_username === meInfo.user_username) {
+console.log(meInfo);
+if (
+  meInfo !== undefined &&
+  userInformation.user_username === meInfo.user_username
+) {
   classes($page.userYou, [], ["hidden"]);
   setupSettings();
 }
