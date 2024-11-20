@@ -197,16 +197,16 @@ const progressEllipsis = () => {
     document.getElementsByClassName("loading-ellipsis"),
     ($ellipsisElement) => {
       if ($ellipsisElement.classList.contains("stopped")) {
-        $ellipsisElement.innerText = "...";
+        $ellipsisElement.innerText = "•••";
         return;
       }
       var innerText = $ellipsisElement.innerText;
-      if (innerText === "º..") {
-        innerText = ".º.";
-      } else if (innerText === ".º.") {
-        innerText = "..º";
+      if (innerText === "º••") {
+        innerText = "•º•";
+      } else if (innerText === "•º•") {
+        innerText = "••º";
       } else {
-        innerText = "º..";
+        innerText = "º••";
       }
       $ellipsisElement.innerText = innerText;
     },
