@@ -19,6 +19,10 @@ body {
     font-family: "Public Sans", sans-serif;
 }
 
+.loading-ellipsis {
+    font-family: "Fira Code", monospace;
+}
+
 h1,
 h2 {
     margin-bottom: 0;
