@@ -8,6 +8,7 @@ package-lock.json
 *.dev
 .DS_Store
 .idea
+.env
 
 # Docker
 Dockerfile
