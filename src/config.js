@@ -9,7 +9,7 @@ export const PROTOCOL = process.env.PROTOCOL,
   MAX_COMMENT_LENGTH = 4000,
   MAX_POST_TITLE_LENGTH = 300,
   HOMEPAGE_ITEMS_PER_PAGE = 50,
-  MAILGUN = {
+  MAIL = {
     DOMAIN: "ari-s.com",
     EMAIL: "Mr. Evil <evil@ari-s.com>",
   },
@@ -26,7 +26,7 @@ export const PROTOCOL = process.env.PROTOCOL,
     MAILGUN_API_KEY: process.env.MAILGUN_API_KEY,
   },
   SESSION_ID = {
-    NUM_PER_CATEGORY: 16,
-    SHUFFLES: 10,
+    NUM_PER_CATEGORY: 32,
+    SHUFFLES: 32,
   },
   APPROVED_HOSTNAMES = ["localhost", "evil.ari-s.com"];

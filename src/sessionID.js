@@ -19,7 +19,7 @@ export const generateSessionID = (numberPerCategory, numShuffles) => {
       numShuffles,
     ).join("");
   },
-  hash = (string) => createHash("sha256").update(string).digest("hex");
+  sha256 = (string) => createHash("sha256").update(string).digest("hex");
 // https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
 const shuffle = (inputArray, numShuffles) => {
     if (numShuffles === 0) return inputArray;

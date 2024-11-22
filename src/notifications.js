@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import Mailgun from "mailgun.js";
 import formData from "form-data";
-import { MAILGUN, SECRETS } from "./config.js";
+import { MAIL, SECRETS } from "./config.js";
 import {
   dbCountQueuedNotifications,
   dbGetNotificationSettings,
@@ -40,8 +40,8 @@ export const sendEmailNotifications = async () => {
           // Do not send if the user has notifications off
           continue;
         // Send with Mailgun
-        await mg.messages.create(MAILGUN.DOMAIN, {
-          from: MAILGUN.EMAIL,
+        await mg.messages.create(MAIL.DOMAIN, {
+          from: MAIL.EMAIL,
           to: [userEmail],
           subject: `[Evil Forum] ${notification.notification_information.header}`,
           text: `${notification.notification_information.body}`,
