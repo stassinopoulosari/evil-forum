@@ -32,6 +32,7 @@ router.get("/", (req, res) =>
   }),
 );
 
+// Sessions are needed for authentication
 router.use(passSession).use(
   rateLimit({
     windowMs: 10 * 60 * 1000,
@@ -100,6 +101,7 @@ router
 
 router.get("/users/me", routeGetUserMe).get("/users/:username", routeGetUser);
 
+// 404 error for any path not matched
 router.use((req, res) => {
   res.status(404);
   res.json({ status: false, error: "Path/request type not found" });

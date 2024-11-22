@@ -25,4 +25,8 @@ export const PROTOCOL = process.env.PROTOCOL,
     DATABASE_URL: process.env.DATABASE_URL,
     MAILGUN_API_KEY: process.env.MAILGUN_API_KEY,
   },
+  SESSION_ID = {
+    NUM_PER_CATEGORY: 16,
+    SHUFFLES: 10,
+  },
   APPROVED_HOSTNAMES = ["localhost", "evil.ari-s.com"];

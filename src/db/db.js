@@ -84,7 +84,7 @@ export const dbSession = session({
       vote_positive boolean not null
     );
     create table "user_sessions"(
-      session_id uuid primary key,
+      session_id text primary key,
       user_id uuid references users(user_id) not null,
       session_expires timestamptz not null,
       session_opened timestamptz not null,

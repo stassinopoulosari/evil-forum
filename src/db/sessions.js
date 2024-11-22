@@ -2,7 +2,9 @@ import {
   MAX_SESSION_LENGTH,
   SESSION_EXPIRATION_SECONDS,
   SESSION_EXTEND_THRESHOLD,
+  SESSION_ID,
 } from "../config.js";
+import { generateSessionID, hash } from "../sessionID.js";
 import {
   client,
   paramArgumentNonNull,
@@ -25,7 +27,7 @@ export const dbGetSession = async (sessionID) => {
     try {
       const sessionQuery = await client.query(
         "select * from user_sessions where session_id = $1;",
-        [sessionID],
+        [hash(sessionID)],
       );
       if (sessionQuery.rows.length !== 1) return undefined;
       const session = sessionQuery.rows[0];
@@ -65,11 +67,14 @@ export const dbGetSession = async (sessionID) => {
       paramArgumentString,
     ]);
     validateArgument("expires", expires, [paramArgumentNonNull]);
-    const sessionID = crypto.randomUUID();
+    const sessionID = generateSessionID(
+      SESSION_ID.NUM_PER_CATEGORY,
+      SESSION_ID.SHUFFLES,
+    );
     try {
       await client.query(
         "insert into user_sessions(session_id, user_id, session_expires, session_ip, session_opened) values($1, $2, $3, $4, NOW());",
-        [sessionID, userID, expires, ipAddress],
+        [hash(sessionID), userID, expires, ipAddress],
       );
       console.log(`Created session for user ${userID}`);
       return sessionID;
@@ -92,7 +97,7 @@ export const dbGetSession = async (sessionID) => {
     try {
       currentSessionQuery = await client.query(
         "select session_opened, session_expires from user_sessions where session_id = $1 and user_id = $2 limit 1",
-        [sessionID, userID],
+        [hash(sessionID), userID],
       );
     } catch (err) {
       throw POSTGRES_ERROR(err);
@@ -120,7 +125,7 @@ export const dbGetSession = async (sessionID) => {
     try {
       const extendSessionQuery = await client.query(
         "update user_sessions set session_expires = $1 where session_id = $1 and user_id = $2",
-        [expires, sessionID, userID],
+        [expires, hash(sessionID), userID],
       );
       return extendSessionQuery;
     } catch (err) {
@@ -161,7 +166,7 @@ export const dbGetSession = async (sessionID) => {
     try {
       const deletionQuery = await client.query(
         "delete from user_sessions where session_id = $1 returning *;",
-        [sessionID],
+        [hash(sessionID)],
       );
       if (deletionQuery.rows.length !== 1) return false;
       return true;

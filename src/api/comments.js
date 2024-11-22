@@ -42,6 +42,7 @@ export const routeGetPostComments = async (req, res) => {
     }
     const commentID = parseInt(req.params.commentID),
       userID = req.evilUserID;
+    // Comment ID must actually be a number
     if (commentID === undefined || isNaN(commentID)) {
       res.status(400);
       return res.json({
