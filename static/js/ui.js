@@ -15,7 +15,7 @@ export const addEllipsis = ($parent) => {
       return $parent;
     }
     $parent.appendChild(
-      classes(update(make("div"), { innerText: "..." }), ["loading-ellipsis"]),
+      classes(update(make("div"), { innerText: "•••" }), ["loading-ellipsis"]),
     );
     return $parent;
   },
