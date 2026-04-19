@@ -17,7 +17,7 @@ The application is proxied behind Cloudflare, which is also used to manage DNS.
 
 ## architecture
 
-This application is structured as a monolith with two main subcomponents: the `web` container and the recurring actions (or `recur` container). I took this approach to minimize the overhead that would otherwise be associated with running a serverless application while still avoiding the ma
+This application is structured as a monolith with two main subcomponents: the `web` container and the recurring actions (or `recur` container). I took this approach to minimize the overhead that would otherwise be associated with running a serverless application while still maintaining the separation of concerns that makes those easier to develop.
 
 ## configuration
 
@@ -43,7 +43,7 @@ You will also need to create a Postgres Database with Heroku by running `scripts
 
 ### running locally
 
-To run the application locally, you will need to run `npm run local`. In order to deploy to Heroku, ou may run `scripts/launch.sh`.
+To run the application locally, you will need to run `npm run local`. In order to deploy to Heroku, run `scripts/launch.sh`.
 
 ## screenshots
 
